@@ -1,0 +1,79 @@
+Current path: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+node: gpn-headnode
+available CPU cores count: 2
+
+job ID: 42542
+job current dir: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+job nodes: gpn-node19
+job MPI process count: 1
+job CPU cores per MPI process: 1
+
+
+Lab1_v1 results:
+Beginning...
+Time: 33.474598 sec
+=====================================================
+
+Current path: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+node: gpn-headnode
+available CPU cores count: 2
+
+job ID: 42543
+job current dir: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+job nodes: gpn-node19
+job MPI process count: 2
+job CPU cores per MPI process: 1
+
+
+Lab1_v1 results:
+Beginning...
+Time: 21.117107 sec
+=====================================================
+
+Current path: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+node: gpn-headnode
+available CPU cores count: 2
+
+job ID: 42544
+job current dir: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+job nodes: gpn-node19
+job MPI process count: 4
+job CPU cores per MPI process: 1
+
+
+Lab1_v1 results:
+Beginning...
+Time: 16.319679 sec
+=====================================================
+
+Current path: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+node: gpn-headnode
+available CPU cores count: 2
+
+job ID: 42545
+job current dir: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+job nodes: gpn-node18
+job MPI process count: 8
+job CPU cores per MPI process: 1
+
+
+Lab1_v1 results:
+Beginning...
+Time: 11.142216 sec
+=====================================================
+
+Current path: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+node: gpn-headnode
+available CPU cores count: 2
+
+job ID: 42546
+job current dir: /home/fit_opp/22210/bochkarev/Lab_1/Lab1_1/byNotMineScript/scripts
+job nodes: gpn-node[17-18]
+job MPI process count: 16
+job CPU cores per MPI process: 1
+
+
+Lab1_v1 results:
+Beginning...
+Time: 7.463405 sec
+=====================================================
