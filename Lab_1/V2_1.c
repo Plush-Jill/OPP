@@ -159,6 +159,7 @@ void calculate_Axb(const double* matrixAPart, const double* vectorXPart, const d
         }
 
         if (i != processTotalSize - 1) {
+            //
             MPI_Sendrecv_replace(replaceVectorXPart, lineCounts[0], MPI_DOUBLE, destinationRank, processRank,
                                  sourceRank, sourceRank, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }

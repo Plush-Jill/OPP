@@ -5,9 +5,9 @@ set(CMAKE_C_STANDARD 17)
 link_libraries()
 
 add_executable(Lab_1
-        #main.c
+        main.c
         #V2_1.c
         #V1_4v2.c
         #V2_1.c
-        V0.c
+        #V0.c
 )
