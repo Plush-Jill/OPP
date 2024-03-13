@@ -71,10 +71,12 @@ int main(int argc, char** argv) {
         setVectorXtoFofX(vectorAxbPart, vectorXPart, lineCounts[processCurrentRank]);
         vectorAxbNorm = calculateEuclideanVectorNorm(vectorAxbPart, lineCounts[processCurrentRank]);
 
+        //суммирование квадратов норм частей vectorAxb в нулевом процессе для дальнейшего вычисления в нём корня
         MPI_Reduce(&vectorAxbNorm, &accuracy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
         if (processCurrentRank == 0) {
             accuracy = sqrt(accuracy) / vectorBNorm;
         }
+        //обновление accuracy на всех процессах для проверки условия
         MPI_Bcast(&accuracy, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     }
     endingTime = MPI_Wtime();

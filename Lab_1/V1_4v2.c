@@ -28,6 +28,7 @@ void printMatrix(const double* matrixAPart, int lineCountInCurrentProcess, int p
                             int processCurrentRank,
                             int processTotalSize);*/
 
+
 int main(int argc, char **argv) {
     int processCurrentRank;
     int processTotalSize;
@@ -73,9 +74,11 @@ int main(int argc, char **argv) {
         calc_Axb(matrixAPart, vectorX, vectorB, vectorAxbPart, lineCounts[processCurrentRank], lineOffsets[processCurrentRank]);
         setVectorXtoFofX(vectorAxbPart, vectorX, vectorXPart, lineCounts[processCurrentRank],lineOffsets[processCurrentRank]);
 
+        //сбор vectorX в каждом процессе по частям (vectorXPart), используя lineOffsets
         MPI_Allgatherv(vectorXPart, lineCounts[processCurrentRank], MPI_DOUBLE, vectorX, lineCounts, lineOffsets, MPI_DOUBLE, MPI_COMM_WORLD);
 
         double vectorAxbPartEuclideanNorm = calculateEuclideanVectorNorm(vectorAxbPart, lineCounts[processCurrentRank]);
+        //суммирование квадратов норм частей vectorAxb в нулевом процессе для дальнейшего вычисления корня
         MPI_Reduce(&vectorAxbPartEuclideanNorm, &vectorAxbEuclideanNorm, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
         if (processCurrentRank == 0) {
@@ -105,6 +108,8 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+
+
 void printMatrix(const double* matrixAPart, int lineCountInCurrentProcess, int processSize, int rank) {
     for (int processRank = 0; processRank < processSize; ++processRank) {
         if (processRank == rank) {
