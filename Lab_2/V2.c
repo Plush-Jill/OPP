@@ -70,7 +70,7 @@ void initLineCountsAndOffsets_v2(int* lineCountsPerProcess, int* lineOffsets, in
 }
 
 
-int main() {
+int main_v0() {
     int iterationsCount;
     double* vectorX = malloc(sizeof(double) * N);
     double* vectorB = malloc(sizeof(double) * N);
@@ -97,7 +97,8 @@ int main() {
     double vectorAxbNormParts[threadCount];
     vectorBEuclideanNorm = calculateEuclideanVectorNorm_v2(vectorB, N);
 
-    #pragma omp parallel private(thread_id)
+    fprintf(stdout, "Threads count: %d\n", threadCount);
+    #pragma omp parallel private(threadID)
     {
         threadID = omp_get_thread_num();
 
@@ -108,7 +109,7 @@ int main() {
                        vectorB + lineOffsets[threadID],
                        lineCounts[threadID]);
 
-            #pragma omp barrier
+            // #pragma omp barrier
             setVectorXtoFofX_v2(vectorX + lineOffsets[threadID], vectorAxb + lineOffsets[threadID],
                                 lineCounts[threadID]);
 
