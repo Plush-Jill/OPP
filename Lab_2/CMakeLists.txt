@@ -5,4 +5,6 @@ set(CMAKE_C_STANDARD 17)
 
 add_executable(Lab_2 V2.c
         V1.c
-        V0.c)
+        V0.c
+        V0_1.c
+        V0_2.c)
