@@ -81,14 +81,14 @@ void initVectorB_v1(double* vectorB, int size) {
 double getNormSquare_v1(const double* vector, int size) {
     double normSquare = 0;
 
-    #pragma omp parallel for schedule(runtime, 50) reduction(+:normSquare)
+    #pragma omp parallel for schedule(runtime) reduction(+:normSquare)
     for (int i = 0; i < size; ++i) {
         normSquare += vector[i] * vector[i];
     }
     return normSquare;
 }
 void calcVectorAXB_v1(const double* matrixA, const double* vectorX, const double* vectorB, double* vectorAXB, int size) {
-    #pragma omp parallel for schedule(runtime, 50)
+    #pragma omp parallel for schedule(runtime)
     for (int i = 0; i < size; ++i) {
         vectorAXB[i] = -vectorB[i];
         for (int j = 0; j < N; ++j)
@@ -96,7 +96,7 @@ void calcVectorAXB_v1(const double* matrixA, const double* vectorX, const double
     }
 }
 void calcNextVectorX_v1(const double* vectorAXB, double* vectorX, double tau, int size) {
-    #pragma omp parallel for schedule(runtime, 50)
+    #pragma omp parallel for schedule(runtime)
     for (int i = 0; i < size; ++i) {
         vectorX[i] -= tau * vectorAXB[i];
     }
