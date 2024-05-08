@@ -1,4 +1,3 @@
-#include <math.h>
 #include <mpi/mpi.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -17,9 +16,10 @@ void multiply(const double *matrixABlock, const double *matrixBBlock, double *ma
               int matrixBBlockSize, int n2, int processRank);
 void gatherMatrixC(const double *matrixCBlock, double *matrixC, int matrixABlockSize, int matrixBBlockSize, int n1, int n3,
               int processCount, MPI_Comm commGrid, int processRank);
-
 bool checkMatrixC(const double *matrixC, int columns, int rows, int n2);
 void printMatrix(const double* matrix, int rows, int columns);
+
+
 
 int main(int argc, char **argv) {
     int n1 = 144 * 20;
@@ -53,10 +53,9 @@ int main(int argc, char **argv) {
     MPI_Dims_create(processCount, DIMENSIONS_COUNT, dimensions);
 
     initCommunicators(dimensions, &commGrid, &commRows, &commColumns);
-    // Get coordinates of processes
+    // Получение координат текущего процесса в comm.
     MPI_Cart_coords(commGrid, processRank, DIMENSIONS_COUNT, coords);
 
-    // Set parameters of matrix blocks
     matrixABlockSize = n1 / dimensions[X];
     matrixBBlockSize = n3 / dimensions[Y];
 
@@ -82,11 +81,12 @@ int main(int argc, char **argv) {
         }
         MPI_Barrier(MPI_COMM_WORLD);
     }
-    beginningTime = MPI_Wtime();
 
     matrixABlock = malloc(sizeof(double) * matrixABlockSize * n2);
     matrixBBlock = malloc(sizeof(double) * matrixBBlockSize * n2);
     matrixCBlock = calloc(matrixABlockSize * matrixBBlockSize, sizeof(double));
+
+    beginningTime = MPI_Wtime();
 
     splitMatrixA(matrixA, matrixABlock, matrixABlockSize, n2, coords[Y], commRows, commColumns);
     splitMatrixB(matrixB, matrixBBlock, matrixBBlockSize, n2, n3, coords[X], commRows, commColumns);
@@ -118,22 +118,12 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
 }
 
-/**
- * @brief Initialize communicators
- *
- * @param dimensions Size of dimensions
- * @param commGrid Communicator for grids
- * @param commRows Communicator for rows
- * @param commColumns Communicator for columns
- *
- * @returns comm_grid, comm_rows, comm_columns
- */
+
 void initCommunicators(const int dimensions[DIMENSIONS_COUNT], MPI_Comm* commGrid, MPI_Comm* commRows, MPI_Comm* commColumns) {
-    int reorder = 1;
     int periods[DIMENSIONS_COUNT] = {};
     int subDimensions[DIMENSIONS_COUNT] = {};
 
-    MPI_Cart_create(MPI_COMM_WORLD, DIMENSIONS_COUNT, dimensions, periods, reorder, commGrid);
+    MPI_Cart_create(MPI_COMM_WORLD, DIMENSIONS_COUNT, dimensions, periods, 1, commGrid);
 
     subDimensions[X] = false;
     subDimensions[Y] = true;
@@ -143,18 +133,6 @@ void initCommunicators(const int dimensions[DIMENSIONS_COUNT], MPI_Comm* commGri
     subDimensions[Y] = false;
     MPI_Cart_sub(*commGrid, subDimensions, commColumns);
 }
-
-/**
- * @brief Generate matrix that has same numbers on rows or columns
- *
- * @param matrix Pointer to array of row*column size
- * @param columns Number of column
- * @param rows Number of rows in which data will be stored (leadingRow <= row)
- * @param leadingColumn Number of columns in which data will be stored (leadingColumn <= column)
- * @param onRows true - rows have same numbers, false - columns have same numbers
- *
- * @returns matrix
- */
 void initMatrix(double *matrix, int rows, int columns) {
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < columns; ++j) {
@@ -162,20 +140,6 @@ void initMatrix(double *matrix, int rows, int columns) {
         }
     }
 }
-
-/**
- * @brief Split matrix A into row blocks between processes
- *
- * @param matrixA Matrix A which is only available in 0 process
- * @param matrixABlock Row block
- * @param matrixABlockSize Number of rows in row block
- * @param n2 Number of columns of matrix A and number of rows of matrix B
- * @param coordsY Y coordinate of process
- * @param commRows Comunnicator for rows
- * @param commColumns Comunnicator for columns
- *
- * @returns A_block
- */
 void splitMatrixA(const double* matrixA, double* matrixABlock, int matrixABlockSize, int n2, int coordsY, MPI_Comm commRows, MPI_Comm commColumns){
     if (coordsY == 0) {
         MPI_Scatter(matrixA, matrixABlockSize * n2, MPI_DOUBLE, matrixABlock, matrixABlockSize * n2, MPI_DOUBLE, 0, commColumns);
@@ -183,21 +147,6 @@ void splitMatrixA(const double* matrixA, double* matrixABlock, int matrixABlockS
 
     MPI_Bcast(matrixABlock, matrixABlockSize * n2, MPI_DOUBLE, 0, commRows);
 }
-
-/**
- * @brief Split matrix B into column blocks between processes
- *
- * @param matrixB Matrix B which is only available in 0 process
- * @param matrixBBlock Column block
- * @param matrixBBlockSize Number of columns in column block
- * @param n2 Number of columns of matrix A and number of rows of matrix B
- * @param n3  Aligned size n_3
- * @param coordsX X coordinate of process
- * @param commRows Comunnicator for rows
- * @param commColumns Comunnicator for columns
- *
- * @returns B_block
- */
 void splitMatrixB(const double* matrixB, double* matrixBBlock, int matrixBBlockSize, int n2, int n3, int coordsX, MPI_Comm commRows, MPI_Comm commColumns){
     if (coordsX == 0) {
         MPI_Datatype columnTypeNotResized;
@@ -217,19 +166,6 @@ void splitMatrixB(const double* matrixB, double* matrixBBlock, int matrixBBlockS
 
     MPI_Bcast(matrixBBlock, matrixBBlockSize * n2, MPI_DOUBLE, 0, commColumns);
 }
-
-/**
- * @brief Multiply row block of matrix A and column block of matrix B
- *
- * @param matrixABlock Row block of matrix A
- * @param matrixBBlock Column block of matrix B
- * @param matrixCBlock Grid block of matrix C
- * @param matrixABlockSize Number of rows in row block
- * @param matrixBBlockSize Number of columns in column block
- * @param n2 Number of columns of matrix A and number of rows of matrix B
- *
- * @returns C_block
- */
 void multiply(const double *matrixABlock, const double *matrixBBlock, double *matrixCBlock, int matrixABlockSize,
               int matrixBBlockSize, int n2, int processRank) {
     long long sum = 0;
@@ -248,21 +184,6 @@ void multiply(const double *matrixABlock, const double *matrixBBlock, double *ma
         MPI_Barrier(MPI_COMM_WORLD);
     }*/
 }
-
-/**
- * @brief Gather matrix C of grid blocks
- *
- * @param matrixCBlock Grid block of matrix C
- * @param matrixC Matrix C
- * @param matrixABlockSize Number of rows in row block
- * @param matrixBBlockSize Number of columns in column block
- * @param n1 Aligned number of number of rows of matrix A
- * @param n3 Aligned number of columns of matrix B
- * @param proc_rank Rank of current process
- * @param commGrid Communicator for grids
- *
- * @returns C
- */
 void gatherMatrixC(const double *matrixCBlock, double *matrixC, int matrixABlockSize, int matrixBBlockSize, int n1, int n3,
               int processCount, MPI_Comm commGrid, int processRank) {
     MPI_Datatype receiveTypeNotResized;
@@ -303,19 +224,6 @@ void gatherMatrixC(const double *matrixCBlock, double *matrixC, int matrixABlock
     free(receiveCounts);
     free(offsets);
 }
-
-/**
- * @brief Сheck result of multiplying matrices A and B stored in matrix C for correctness
- *
- * @param matrixC matrix C storing rsult of multiplying matrices A and B
- * @param columns Number of column
- * @param rows Number of rows in which data will be stored (leading_row <= row)
- * @param leading_column Number of columns in which data will be stored (leading_column <= column)
- * @param n_2 Number of columns of matrix A and number of rows of matrix B
- *
- * @return true - Result of multiplying matrices A and B stored in matrix C is correct,
- * @return false - Result of multiplying matrices A and B stored in matrix C is incorrect
- */
 bool checkMatrixC(const double *matrixC, int columns, int rows, int n2) {
     long long n2Sum = 0;
     for (int i = 0; i < n2; ++i){
