@@ -12,7 +12,6 @@ int main(int argc, char** argv) {
 
 
 
-
     beginTime = MPI_Wtime();
 
     jacobiSolver->solveEquation();
