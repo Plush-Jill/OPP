@@ -20,7 +20,6 @@ int main(int argc, char** argv) {
 
 
 
-
     if (jacobiSolver->getProcessRank() == 0) {
         printf("Time: %lf\n", endTime - beginTime);
         printf("Max Difference: %lf\n", jacobiSolver->getAccuracyEstimate());
