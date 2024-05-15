@@ -18,67 +18,8 @@ void gatherMatrixC(const double *matrixCBlock, double *matrixC, int matrixABlock
               int processCount, MPI_Comm commGrid, int processRank);
 bool checkMatrixC(const double *matrixC, int columns, int rows, int n2);
 void printMatrix(const double* matrix, int rows, int columns);
-void showCoordinates(int processRank, int coords[]){
-    if (processRank == 0) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 1) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 2) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 3) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 4) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 5) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 6) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 7) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 8) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 9) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 10) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 11) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 12) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 13) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (processRank == 15) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
+void printCoordinates(int processRank, int coords[]){
+    fprintf(stdout, "Process %d: (%d, %d)\n", processRank, coords[X], coords[Y]);
 }
 
 
@@ -107,9 +48,6 @@ int main(int argc, char **argv) {
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &processRank);
     MPI_Comm_size(MPI_COMM_WORLD, &processCount);
-    if (processRank == 0) {
-        fprintf(stdout, "Process %d: (%d, %d).\n", processRank, coords[X], coords[Y]);
-    }
 
     MPI_Dims_create(processCount, DIMENSIONS_COUNT, dimensions);
 
@@ -133,13 +71,13 @@ int main(int argc, char **argv) {
         initMatrix(matrixA, n1, n2);
         initMatrix(matrixB, n2, n3);
     }
-    for (int i = 0; i < 16; ++i) {
+
+    for (int i = 0; i < processCount; ++i){
         if (processRank == i) {
-            fprintf(stdout, "Coordinates:\n");
+            printCoordinates(processRank, coords);
+            MPI_Barrier(MPI_COMM_WORLD);
         }
-        MPI_Barrier(MPI_COMM_WORLD);
     }
-    showCoordinates(processRank, coords);
 
     matrixABlock = malloc(sizeof(double) * matrixABlockSize * n2);
     matrixBBlock = malloc(sizeof(double) * matrixBBlockSize * n2);
