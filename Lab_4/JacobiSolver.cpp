@@ -44,8 +44,8 @@ void JacobiSolver::divideAreaIntoLayers() {
 }
 void JacobiSolver::initLayers() {
     for (int i = 0; i < this->layerHeights[this->processRank]; ++i) {
-        for (int j = 0; j < this->Ny; j++) {
-            for (int k = 0; k < this->Nz; k++) {
+        for (int j = 0; j < this->Ny; ++j) {
+            for (int k = 0; k < this->Nz; ++k) {
                 bool isBorder = (this->offsets[this->processRank] + i == 0) || (j == 0) || (k == 0)
                                 || (this->offsets[this->processRank] + i == this->Nx - 1)
                                 || (j == this->Ny - 1) || (k == this->Nz - 1);
@@ -64,45 +64,24 @@ void JacobiSolver::initLayers() {
 
 
 void JacobiSolver::solveEquation() {
-    do {
-        double tmpMaxDiff1;
-        double tmpMaxDiff2;
+    double maxDifferenceFromCenter;
+    double maxDifferenceFromBorder;
 
+    do {
         MPI_Iallreduce(&this->previousProcessMaxDiff, &this->maxDiff, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD, &this->reduceMaxDiffRequest);
 
         swapPreviousAndCurrentValues();
 
-        if (this->processRank != 0) {
-            MPI_Isend(this->previousFunctionValue.data(), this->Ny * this->Nz, MPI_DOUBLE, this->processRank - 1, this->processRank, MPI_COMM_WORLD, &this->sendUpRequest);
-            MPI_Irecv(this->upBorderLayer.data(), this->Ny * this->Nz, MPI_DOUBLE, this->processRank - 1, this->processRank - 1, MPI_COMM_WORLD, &this->receiveUpRequest);
-        }
+        sendReceiveBorders();
 
-        if (this->processRank != this->processCount - 1) {
-            double* previousDownBorder = this->previousFunctionValue.data() + (this->layerHeights[processRank] - 1) * this->Ny * this->Nz;
-            MPI_Isend(previousDownBorder, this->Ny * this->Nz, MPI_DOUBLE, this->processRank + 1, this->processRank, MPI_COMM_WORLD, &this->sendDownRequest);
-            MPI_Irecv(this->downBorderLayer.data(), this->Ny * this->Nz, MPI_DOUBLE, this->processRank + 1, this->processRank + 1, MPI_COMM_WORLD, &this->receiveDownRequest);
-        }
+        maxDifferenceFromCenter = calcCenter();
 
-        tmpMaxDiff1 = calcCenter();
+        waitBorders();
 
-        // Заканчиваем отправлять и получать границы
-        if (processRank != 0) {
-            MPI_Wait(&sendUpRequest, MPI_STATUS_IGNORE);
-            MPI_Wait(&receiveUpRequest, MPI_STATUS_IGNORE);
-        }
-
-        if (processRank != processCount - 1) {
-            MPI_Wait(&sendDownRequest, MPI_STATUS_IGNORE);
-            MPI_Wait(&receiveDownRequest, MPI_STATUS_IGNORE);
-        }
-
-        // вычисляем границы
-        tmpMaxDiff2 = calcBorder();
-
+        maxDifferenceFromBorder = calcBorder();
 
         MPI_Wait(&reduceMaxDiffRequest, MPI_STATUS_IGNORE);
-
-        previousProcessMaxDiff = fmax(tmpMaxDiff1, tmpMaxDiff2);
+        previousProcessMaxDiff = std::max(maxDifferenceFromCenter, maxDifferenceFromBorder);
     } while (maxDiff >= this->EPSILON);
 
 
@@ -147,19 +126,18 @@ double JacobiSolver::calcBorder() {
 
     for (int j = 1; j < this->Ny - 1; ++j)
         for (int k = 1; k < this->Nz - 1; ++k) {
+
             // up border
             if (this->processRank != 0) {
                 f_i = (this->previousFunctionValue[getIndex(1, j, k)] + this->upBorderLayer[getIndex(0, j, k)]) / this->Hx2;
                 f_j = (this->previousFunctionValue[getIndex(0, j + 1, k)] + this->previousFunctionValue[getIndex(0, j - 1, k)]) / this->Hy2;
                 f_k = (this->previousFunctionValue[getIndex(0, j, k + 1)] + this->previousFunctionValue[getIndex(0, j, k - 1)]) / this->Hz2;
 
-                this->currentFunctionValue[getIndex(0, j, k)] = (f_i + f_j + f_k - calcRho(getX(this->offsets[this->processRank]), getY(j), getZ(k))) / (2 / this->Hx2 + 2 / this->Hy2 + 2 / this->Hz2 + A);
+                this->currentFunctionValue[getIndex(0, j, k)] = (f_i + f_j + f_k - calcRho(getX(this->offsets[this->processRank]), getY(j), getZ(k))) * this->nextIterationConst;
 
 
-                tmpMaxDiff = fabs(this->currentFunctionValue[getIndex(0, j, k)] - previousFunctionValue[getIndex(0, j, k)]);
-                if (tmpMaxDiff > maxDiff_) {
-                    maxDiff_ = tmpMaxDiff;
-                }
+                tmpMaxDiff = std::abs(this->currentFunctionValue[getIndex(0, j, k)] - previousFunctionValue[getIndex(0, j, k)]);
+                maxDiff_ = std::max(maxDiff_, tmpMaxDiff);
             }
 
             // down border
@@ -171,10 +149,8 @@ double JacobiSolver::calcBorder() {
                 this->currentFunctionValue[getIndex(this->layerHeights[this->processRank] - 1, j, k)] = (f_i + f_j + f_k -
                                                                                                          calcRho(getX(this->offsets[this->processRank] + this->layerHeights[this->processRank] - 1), getY(j), getZ(k))) / (2 / this->Hx2 + 2 / this->Hy2 + 2 / this->Hz2 + this->A);
 
-                tmpMaxDiff = fabs(currentFunctionValue[getIndex(this->layerHeights[this->processRank] - 1, j, k)] - previousFunctionValue[getIndex(this->layerHeights[this->processRank] - 1, j, k)]);
-                if (tmpMaxDiff > maxDiff_) {
-                    maxDiff_ = tmpMaxDiff;
-                }
+                tmpMaxDiff = std::abs(currentFunctionValue[getIndex(this->layerHeights[this->processRank] - 1, j, k)] - previousFunctionValue[getIndex(this->layerHeights[this->processRank] - 1, j, k)]);
+                maxDiff_ = std::max(maxDiff_, tmpMaxDiff);
             }
         }
 
@@ -199,7 +175,7 @@ double JacobiSolver::calcMaxDiff() {
 }
 JacobiSolver::JacobiSolver() : x0(0), y0(0), z0(0),
                                Dx(2.0), Dy(2.0), Dz(2.0),
-                               Nx(600), Ny(600), Nz(600),
+                               Nx(200), Ny(200), Nz(200),
                                Hx(Dx / (Nx - 1)), Hy(Dy / (Ny - 1)), Hz(Dz / (Nz - 1)),
                                Hx2(Hx * Hx), Hy2(Hy * Hy), Hz2(Hz * Hz),
                                A(1.0E5), EPSILON(1.0E-4), nextIterationConst(1 / ((2 / this->Hx2) + (2 / this->Hy2) + (2 / this->Hz2) + A))
@@ -223,4 +199,29 @@ JacobiSolver::JacobiSolver() : x0(0), y0(0), z0(0),
     this->upBorderLayer = std::vector<double>(Ny * Nz);
     this->downBorderLayer = std::vector<double>(Ny * Nz);
 
+}
+
+void JacobiSolver::sendReceiveBorders() {
+    if (this->processRank != 0) {
+        MPI_Isend(this->previousFunctionValue.data(), this->Ny * this->Nz, MPI_DOUBLE, this->processRank - 1, this->processRank, MPI_COMM_WORLD, &this->sendUpRequest);
+        MPI_Irecv(this->upBorderLayer.data(), this->Ny * this->Nz, MPI_DOUBLE, this->processRank - 1, this->processRank - 1, MPI_COMM_WORLD, &this->receiveUpRequest);
+    }
+
+    if (this->processRank != this->processCount - 1) {
+        double* previousDownBorder = this->previousFunctionValue.data() + (this->layerHeights[processRank] - 1) * this->Ny * this->Nz;
+        MPI_Isend(previousDownBorder, this->Ny * this->Nz, MPI_DOUBLE, this->processRank + 1, this->processRank, MPI_COMM_WORLD, &this->sendDownRequest);
+        MPI_Irecv(this->downBorderLayer.data(), this->Ny * this->Nz, MPI_DOUBLE, this->processRank + 1, this->processRank + 1, MPI_COMM_WORLD, &this->receiveDownRequest);
+    }
+}
+
+void JacobiSolver::waitBorders() {
+    if (processRank != 0) {
+        MPI_Wait(&sendUpRequest, MPI_STATUS_IGNORE);
+        MPI_Wait(&receiveUpRequest, MPI_STATUS_IGNORE);
+    }
+
+    if (processRank != processCount - 1) {
+        MPI_Wait(&sendDownRequest, MPI_STATUS_IGNORE);
+        MPI_Wait(&receiveDownRequest, MPI_STATUS_IGNORE);
+    }
 }

@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.28)
-project(Lab_4_cpp)
+project(Lab_4)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_COMPILER mpic++)
 
-add_executable(Lab_4_cpp main.cpp
+add_executable(Lab_4 main.cpp
         JacobiSolver.cpp
         JacobiSolver.h)
 
@@ -13,5 +13,3 @@ include_directories(${MPI_INCLUDE_PATH})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -lm ")
 
-add_executable(main.out main.cpp JacobiSolver.cpp JacobiSolver.h)
-target_link_libraries(main.out ${MPI_CXX_LIBRARIES})

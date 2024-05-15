@@ -1,5 +1,5 @@
 #include <vector>
-#include <mpi.h>
+#include <mpi/mpi.h>
 
 class JacobiSolver {
 private:
@@ -63,6 +63,9 @@ private:
     double calcCenter();
     double calcBorder();
     double calcMaxDiff();
+
+    void sendReceiveBorders();
+    void waitBorders();
 
 public:
     JacobiSolver();
