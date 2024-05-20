@@ -53,7 +53,6 @@ int main(int argc, char **argv) {
 
     initCommunicators(dimensions, &commGrid, &commRows, &commColumns);
 
-    // Получение координат текущего процесса в comm.
     MPI_Cart_coords(commGrid, processRank, DIMENSIONS_COUNT, coords);
 
     matrixABlockSize = n1 / dimensions[X];
