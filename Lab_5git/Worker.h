@@ -8,29 +8,44 @@
 
 class Worker {
 private:
-    int processID;
-    std::shared_ptr<TaskQueue> taskQueue;
-    std::shared_ptr<std::mutex> mutex;
+    const int processID;
+    const int processCount;
+    TaskQueue* taskQueue;
+    std::mutex* mutex;
     bool running;
 
-    int taskCount;
-    int currentProcessSumWeight;
-    int processCount;
+    std::condition_variable* workerCondition;
+    std::condition_variable* receiverCondition;
 
-    std::shared_ptr<std::condition_variable> workerCondition;
-    std::shared_ptr<std::condition_variable> receiverCondition;
+    int taskCount;
+    int currentProcessStartSumWeight;
+    int currentProcessEndSumWeight;
+    const int totalSumWeight;// = 47000000;
+
+    pthread_mutex_t* mutexC;
+    pthread_cond_t* workerConditionC;
+    pthread_cond_t* receiverConditionC;
 
     void initTasks();
     void executeCurrentTask();
-    void waitForNewTasks();
 
-    bool isRunning() const;
+    [[nodiscard]] bool isRunning() const;
 
 public:
-    Worker(int processID, int processCount, int taskCount, std::shared_ptr<std::mutex> &mutex,
-           std::shared_ptr<std::condition_variable> &workerCondition,
-           std::shared_ptr<std::condition_variable> &receiverCondition, std::shared_ptr<TaskQueue> &taskQueue);
+    explicit Worker(int processID,
+                    int processCount,
+                    TaskQueue* taskQueue,
+                    std::mutex* mutex,
+                    std::condition_variable* workerCondition,
+                    std::condition_variable* receiverCondition,
+                    int taskCount,
+                    int totalSumWeight,
+                    pthread_mutex_t* mutexC,
+                    pthread_cond_t* workerConditionC,
+                    pthread_cond_t* receiverConditionC
+    );
     void start();
+    void stop();
 };
 
 

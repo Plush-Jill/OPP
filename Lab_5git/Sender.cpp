@@ -1,43 +1,83 @@
 #include "Sender.h"
 #include <mpi/mpi.h>
+#include <thread>
 
-Sender::Sender(int processID, std::shared_ptr<TaskQueue>& taskQueue, std::shared_ptr<std::mutex>& mutex) {
-    this->processID = processID;
-    this->taskQueue = taskQueue;
-    this->mutex = mutex;
-    this->running = true;
-}
 void Sender::start() {
     while (true) {
         int receiveProcessID;
-        Task task = Task();
+        Task task{};
 
-        printf("Sender %d waiting for request\n", processID);
-        MPI_Recv(&receiveProcessID,1,MPI_INT,MPI_ANY_SOURCE,REQUEST_TAG,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+        MPI_Recv(&receiveProcessID,
+                 1,
+                 MPI_INT,
+                 MPI_ANY_SOURCE,
+                 REQUEST_TAG,
+                 MPI_COMM_WORLD,
+                 MPI_STATUS_IGNORE);
 
         if (receiveProcessID == TERMINATION_SIGNAL) {
-            printf("Sender %d received termination signal\n", processID);
             break;
         }
-
-        printf("Sender %d received request from process %d\n", processID, receiveProcessID);
-
-        //pthread_mutex_lock(&mutex);
-        this->mutex->lock();
-        if (!this->taskQueue->isEmpty()) {
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+        std::cout << "Sender " << this->processID << " received request for task from process "
+                  << receiveProcessID << std::endl;
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+        if (!this->taskQueue->isEmpty()){
             task = this->taskQueue->pop();
-            printf("Sender %d sent task %d of process %d to process %d\n", processID, task.getID(), task.getProcessID(), receiveProcessID);
         } else {
-            task = Task::createEmptyTask(this->processID);
-            printf("Sender %d sent empty queue response to process %d\n", processID, receiveProcessID);
+            task = Task::createEmptyTask(processID);
         }
-        this->mutex->unlock();
-        //pthread_mutex_unlock(&mutex);
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
 
-        MPI_Send(&task, sizeof(task), MPI_BYTE, receiveProcessID, RESPONSE_TAG, MPI_COMM_WORLD);
+        MPI_Send(&task,
+                 sizeof(task),
+                 MPI_BYTE,
+                 receiveProcessID,
+                 RESPONSE_TAG,
+                 MPI_COMM_WORLD);
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+        std::cout << "Sender " << this->processID <<
+                     " sent task to process " << receiveProcessID << std::endl;
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
+
     }
 
-    printf("Sender %d finished\n", processID);
+    std::this_thread::yield();
 }
 
+Sender::Sender(int processID,
+               int processCount,
+               TaskQueue* taskQueue,
+               std::mutex* mutex,
+               std::condition_variable* workerCondition,
+               std::condition_variable* receiverCondition,
+               pthread_mutex_t* mutexC,
+               pthread_cond_t* workerConditionC,
+               pthread_cond_t* receiverConditionC
+) : processID(processID), processCount(processCount),
+    taskQueue(taskQueue), mutex(mutex),
+    workerCondition(workerCondition), receiverCondition(receiverCondition),
+    mutexC(mutexC),
+    workerConditionC(workerConditionC), receiverConditionC(receiverConditionC)
+{
+//    this->processID = processID;
+//    this->processCount = processCount;
+//    this->taskQueue = taskQueue;
+//    this->mutex = mutex;
+//    this->workerCondition = workerCondition;
+//    this->receiverCondition = receiverCondition;
+
+    this->running = true;
+}
+
+void Sender::stop() {
+    this->running = false;
+}
 

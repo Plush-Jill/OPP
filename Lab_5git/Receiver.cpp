@@ -1,67 +1,127 @@
 #include "Receiver.h"
+#include "Worker.h"
+#include "Sender.h"
 #include <mpi/mpi.h>
 
-Receiver::Receiver(int processID, int processCount, std::shared_ptr<TaskQueue> &taskQueue,
-                   std::shared_ptr<std::mutex> &mutex,
-                   std::shared_ptr<std::condition_variable> &receiverCondition,
-                   std::shared_ptr<std::condition_variable> &workerCondition) {
-    this->processID = processID;
-    this->taskQueue = taskQueue;
-    this->mutex = mutex;
-    this->workerCondition = workerCondition;
-    this->receiverCondition = receiverCondition;
-    this->processCount = processCount;
+Receiver::Receiver(int processID,
+                   int processCount,
+                   TaskQueue* taskQueue,
+                   std::mutex* mutex,
+                   std::condition_variable* workerCondition,
+                   std::condition_variable* receiverCondition,
+                   Worker* worker,
+                   Sender* sender,
+                   pthread_mutex_t* mutexC,
+                   pthread_cond_t* workerConditionC,
+                   pthread_cond_t* receiverConditionC
+) : processID(processID), processCount(processCount),
+    taskQueue(taskQueue), mutex(mutex),
+    workerCondition(workerCondition), receiverCondition(receiverCondition),
+    mutexC(mutexC),
+    workerConditionC(workerConditionC), receiverConditionC(receiverConditionC)
+    {
+//    this->processID = processID;
+//    this->processCount = processCount;
+//    this->taskQueue = taskQueue;
+//    this->mutex = mutex;
+//    this->workerCondition = workerCondition;
+//    this->receiverCondition = receiverCondition;
+    this->worker = worker;
+    this->sender = sender;
     this->running = true;
 }
-
 void Receiver::start() {
-    while (isRunning()) {
-        int receivedTasks = 0;
-        Task task = Task();
+    while (this->isRunning()) {
+        int receivedTasksCount = 0;
+        Task task{};
 
-        this->mutex->lock();
-        if (!this->taskQueue->isEmpty()) {
-            std::unique_lock<std::mutex> lock (*(this->mutex));
-            receiverCondition->wait(lock);
-//            pthread_cond_wait(&receiverCondition, &mutex);
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+        std::cout << "Receiver " << this->processID << " start waiting" << std::endl;
+        while (!this->taskQueue->isEmpty()) {
+            //std::unique_lock<std::mutex> lock (*(this->mutex));
+            //this->receiverCondition->wait(lock);
+            pthread_cond_signal(this->receiverConditionC);
         }
-        this->mutex->unlock();
-
-        for (int i = 0; i < this->processCount; ++i) {
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+        std::cout << "Receiver " << this->processID << " sends requests" << std::endl;
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
+        for (int i {}; i < processCount; ++i) {
             if (i == this->processID) {
                 continue;
             }
 
-            printf("Receiver %d sent request to process %d\n", processID, i);
-            MPI_Send(&processID, 1, MPI_INT, i, REQUEST_TAG, MPI_COMM_WORLD);
-            MPI_Recv(&task, sizeof(task), MPI_BYTE, i, RESPONSE_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&processID,
+                     1,
+                     MPI_INT,
+                     i,
+                     REQUEST_TAG,
+                     MPI_COMM_WORLD);
+            MPI_Recv(&task,
+                     sizeof(task),
+                     MPI_BYTE,
+                     i,
+                     RESPONSE_TAG,
+                     MPI_COMM_WORLD,
+                     MPI_STATUS_IGNORE);
 
             if (!task.isEmpty()) {
-                printf("Receiver %d received task %d from process %d\n", processID, task.getID(), i);
-
-                this->mutex->lock();
+//                this->mutex->lock();
+                pthread_mutex_lock(this->mutexC);
+                std::cout << "Receiver " << this->processID
+                          << " added task " + task.to_string() << std::endl;
+//                this->mutex->unlock();
+                pthread_mutex_unlock(this->mutexC);
+//                this->mutex->lock();
+                pthread_mutex_lock(this->mutexC);
                 this->taskQueue->push(task);
-                this->mutex->unlock();
+//                this->mutex->unlock();
+                pthread_mutex_unlock(this->mutexC);
 
-                ++receivedTasks;
-            } else {
-                printf("Receiver %d received empty queue response from process %d\n", processID, i);
+                ++receivedTasksCount;
             }
         }
 
-        if (receivedTasks == 0) {
-            this->mutex->lock();
-            this->running = false;
-            this->mutex->unlock();
+        if (receivedTasksCount == 0) {
+
+//            this->mutex->lock();
+            pthread_mutex_lock(this->mutexC);
+            std::cout << "Receiver " << this->processID << " hasn't get task" << std::endl;
+            this->stop();
+//            this->mutex->unlock();
+            pthread_mutex_unlock(this->mutexC);
         }
 
-        this->mutex->lock();
-        workerCondition->notify_one();
-        //pthread_cond_signal(&workerCondition);
-        this->mutex->unlock();
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+        ///this->workerCondition->notify_one();
+        pthread_cond_signal(this->workerConditionC);
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
     }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    int terminationSignal = TERMINATION_SIGNAL;
+    MPI_Send(&terminationSignal,
+             1,
+             MPI_INT,
+             processID,
+             REQUEST_TAG,
+             MPI_COMM_WORLD);
+
+    std::this_thread::yield();
 }
 
 bool Receiver::isRunning() const {
     return this->running;
+}
+
+void Receiver::stop() {
+    this->running = false;
+    this->worker->stop();
+    this->sender->stop();
 }

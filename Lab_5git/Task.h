@@ -21,7 +21,7 @@ public:
     [[nodiscard]] int getWeight() const;
     [[nodiscard]] bool isEmpty() const;
 
-    std::string to_string();
+    std::string to_string() const;
 };
 
 

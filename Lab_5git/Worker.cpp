@@ -1,75 +1,91 @@
 #include "Worker.h"
 #include <mpi/mpi.h>
-
-Worker::Worker(int processID, int processCount, int taskCount, std::shared_ptr<std::mutex> &mutex,
-               std::shared_ptr<std::condition_variable> &workerCondition,
-               std::shared_ptr<std::condition_variable> &receiverCondition, std::shared_ptr<TaskQueue> &taskQueue) {
-    std::cout << "In Worker constructor " << 1 << std::endl;
-    this->processID = processID;
-    this->taskQueue = taskQueue;
-    this->mutex = mutex;
-    this->taskCount = taskCount;
-    std::cout << "In Worker constructor " << 2 << std::endl;
-    this->workerCondition = workerCondition;
-    this->receiverCondition = receiverCondition;
-    this->running = true;
-    std::cout << "In Worker constructor " << 3 << std::endl;
-    this->currentProcessSumWeight = 0;
-    this->processCount = processCount;
-}
+#include <complex>
 
 void Worker::start() {
-    std::cout << "Init tasks..." << std::endl;
-
-    initTasks();
-    std::cout << "Tasks inited" << std::endl;
-
+    this->initTasks();
+//    this->mutex->lock();
+    pthread_mutex_lock(this->mutexC);
+    std::cout << "Worker " << this->processID << " has "
+              << this->taskQueue->getSize() << " tasks." << std::endl;
+//    this->mutex->unlock();
+    pthread_mutex_unlock(this->mutexC);
     MPI_Barrier(MPI_COMM_WORLD);
 
     while (true) {
-        std::cout << "Executing tasks..." << std::endl;
-        executeCurrentTask();
 
-        //this->mutex->lock();
-        std::lock_guard<std::mutex> lockGuard(*(this->mutex));
-        if (this->taskQueue->isEmpty() && isRunning()){
-//            std::lock_guard<std::mutex> lock1(*(this->mutex));
-            this->receiverCondition->notify_one();
-//            pthread_cond_signal(&receiverCondition);
-            std::unique_lock<std::mutex> lock(*(this->mutex));
-            this->workerCondition->wait(lock);
-//            pthread_cond_wait(&workerCondition, &(this->mutex));
+        executeCurrentTask();
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+        std::cout << "Worker " << this->processID << " finished current tasks" << std::endl;
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+//        pthread_mutex_lock(this->mutexC);
+        while (this->taskQueue->isEmpty() && this->isRunning()) {
+            ///receiverCondition->notify_one();
+            std::cout << "Worker " << processID << " waiting for tasks" << std::endl;
+            ///std::unique_lock<std::mutex> lock(*this->mutex);
+
+            std::cout << "Worker " << processID << " created his std::unique_lock" << std::endl;
+            ///workerCondition->wait(lock);
+            pthread_cond_signal(this->receiverConditionC);
+            pthread_cond_wait(this->workerConditionC, this->mutexC);
         }
 
         if (!isRunning()) {
-            //this->mutex->unlock();
+//            this->mutex->unlock();
+            pthread_mutex_unlock(this->mutexC);
+//            pthread_mutex_unlock(this->mutexC);
             break;
         }
-        //this->mutex->unlock();
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
+        //pthread_mutex_unlock(this->mutexC);
     }
-
-    printf("Worker %d finished\n", processID);
+//    this->mutex->lock();
+    pthread_mutex_lock(this->mutexC);
+    std::cout << "Worker " << this->processID << "finished" << std::endl;
+//    this->mutex->unlock();
+    pthread_mutex_unlock(this->mutexC);
+    std::this_thread::yield();
 }
 
 void Worker::executeCurrentTask() {
     while (true) {
-        Task task = Task();
+        Task task{};
 
-
-        this->mutex->lock();
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
         if (this->taskQueue->isEmpty()) {
-            this->mutex->unlock();
+//            this->mutex->unlock();
+            pthread_mutex_unlock(this->mutexC);
             break;
         }
         task = this->taskQueue->pop();
-        this->mutex->unlock();
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+        std::cout << "Worker " << this->processID << " doing task " + task.to_string() << std::endl;
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
+        //std::this_thread::sleep_for(std::chrono::nanoseconds(task.getWeight()));
+        double res {};
+        for (int i = 0; i < task.getWeight(); ++i) {
+            for (int j = 0; j < 180; ++j) {
+                res += sqrt(sqrt(sqrt(std::sqrt(i))));
+            }
+        }
 
-        printf("Worker %d executing task %d of process %d and weight %d\n",
-                processID,
-                task.getID(),
-                task.getProcessID(),
-                task.getWeight());
-        usleep(task.getWeight());
+//        this->mutex->lock();
+        pthread_mutex_lock(this->mutexC);
+        std::cout << "Worker " << this->processID << " did task " + task.to_string() << std::endl;
+
+//        this->mutex->unlock();
+        pthread_mutex_unlock(this->mutexC);
+        this->currentProcessEndSumWeight += task.getWeight();
     }
 }
 
@@ -78,22 +94,45 @@ bool Worker::isRunning() const {
 }
 
 void Worker::initTasks() {
-    const int sumWeight = 50000000;
-    std::cout << this->taskCount << " " << this->processCount << std::endl;
-    int minWeight = 2 * sumWeight / (this->taskCount * (this->processCount + 1));
-    int id = 0;
-    for (int i = 0; i < this->taskCount; ++i) {
-        int weight = minWeight * (i % this->processCount + 1);
-        Task task = Task(id, this->processID, weight);
-        std::cout << i << "'th task: " << task.to_string() << std::endl;
+    int minWeight = 2 * this->totalSumWeight / (this->taskCount * (processCount + 1));
+    int nextTaskID = 1;
+
+    for (int i {}; i < this->taskCount; ++i){
+        int weight = minWeight * (i % processCount + 1);
+        Task task = Task(nextTaskID, processID, weight);
+
         if (i % this->processCount == this->processID) {
-            std::cout << "pushing..." << std::endl;
-            this->mutex->lock();
             this->taskQueue->push(task);
-            this->mutex->unlock();
-            ++id;
-            this->currentProcessSumWeight += task.getWeight();
-            std::cout << "pushed." << std::endl;
+            ++nextTaskID;
+            this->currentProcessStartSumWeight += weight;
         }
     }
+}
+
+Worker::Worker(int processID,
+               int processCount,
+               TaskQueue* taskQueue,
+               std::mutex* mutex,
+               std::condition_variable* workerCondition,
+               std::condition_variable* receiverCondition,
+               int taskCount,
+               int totalSumWeight,
+               pthread_mutex_t* mutexC,
+               pthread_cond_t* workerConditionC,
+               pthread_cond_t* receiverConditionC
+               ) : processID(processID), processCount(processCount),
+                    taskQueue(taskQueue), mutex(mutex),
+                    workerCondition(workerCondition), receiverCondition(receiverCondition),
+                    totalSumWeight(totalSumWeight),
+                    mutexC(mutexC),
+                    workerConditionC(workerConditionC), receiverConditionC(receiverConditionC)
+                {
+    this->taskCount = taskCount;
+    this->running = true;
+    this->currentProcessStartSumWeight = 0;
+    this->currentProcessEndSumWeight = 0;
+}
+
+void Worker::stop() {
+    this->running = false;
 }

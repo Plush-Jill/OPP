@@ -9,11 +9,8 @@
 
 class TaskQueue {
 private:
-    std::shared_ptr<std::vector<Task>> tasks;
-    std::queue<Task> queue;
+    std::queue<Task>* queue;
     int capacity;
-    int count;
-    int popIndex;
 
 public:
     explicit TaskQueue(int capacity);
@@ -24,10 +21,9 @@ public:
     void push(Task task);
     Task pop();
 
-    [[nodiscard]] const std::shared_ptr<std::vector<Task>> &getTasks() const;
     [[nodiscard]] int getCapacity() const;
-    [[nodiscard]] int getCount() const;
-    [[nodiscard]] int getPopIndex() const;
+    [[nodiscard]] int getSize() const;
+    [[nodiscard]] int getSumWeight() const;
 
 };
 

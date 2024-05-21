@@ -2,19 +2,38 @@
 #define LAB_5_SENDER_H
 
 
+#include <condition_variable>
 #include "TaskQueue.h"
 #include "Defines.h"
 
 class Sender {
 private:
-    int processID;
-    std::shared_ptr<TaskQueue> taskQueue;
-    std::shared_ptr<std::mutex> mutex;
+    const int processID;
+    const int processCount;
+    TaskQueue* taskQueue;
+    std::mutex* mutex;
     bool running;
 
+    std::condition_variable* workerCondition;
+    std::condition_variable* receiverCondition;
+
+    pthread_mutex_t* mutexC;
+    pthread_cond_t* workerConditionC;
+    pthread_cond_t* receiverConditionC;
+
 public:
-    Sender(int processID, std::shared_ptr<TaskQueue>& taskQueue, std::shared_ptr<std::mutex>& mutex);
+    explicit Sender(int processID,
+                    int processCount,
+                    TaskQueue* taskQueue,
+                    std::mutex* mutex,
+                    std::condition_variable* workerCondition,
+                    std::condition_variable* receiverCondition,
+                    pthread_mutex_t* mutexC,
+                    pthread_cond_t* workerConditionC,
+                    pthread_cond_t* receiverConditionC
+    );
     void start();
+    void stop();
 };
 
 

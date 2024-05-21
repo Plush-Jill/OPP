@@ -4,24 +4,43 @@
 
 #include "TaskQueue.h"
 #include "Defines.h"
+#include "Worker.h"
+#include "Sender.h"
 #include <condition_variable>
 
 class Receiver {
 private:
-    int processID;
-    std::shared_ptr<TaskQueue> taskQueue;
-    std::shared_ptr<std::mutex> mutex;
+    const int processID;
+    const int processCount;
+    TaskQueue* taskQueue;
+    std::mutex* mutex;
     bool running;
 
-    int processCount;
-    std::shared_ptr<std::condition_variable> workerCondition;
-    std::shared_ptr<std::condition_variable> receiverCondition;
+    std::condition_variable* workerCondition;
+    std::condition_variable* receiverCondition;
 
-    bool isRunning() const;
+    Worker* worker;
+    Sender* sender;
+
+    pthread_mutex_t* mutexC;
+    pthread_cond_t* workerConditionC;
+    pthread_cond_t* receiverConditionC;
+
+    [[nodiscard]] bool isRunning() const;
+    void stop();
 public:
-    Receiver(int processID, int processCount, std::shared_ptr<TaskQueue> &taskQueue, std::shared_ptr<std::mutex> &mutex,
-             std::shared_ptr<std::condition_variable> &receiverCondition,
-             std::shared_ptr<std::condition_variable> &workerCondition);
+    Receiver(int processID,
+             int processCount,
+             TaskQueue* taskQueue,
+             std::mutex* mutex,
+             std::condition_variable* workerCondition,
+             std::condition_variable* receiverCondition,
+             Worker* worker,
+             Sender* sender,
+             pthread_mutex_t* mutexC,
+             pthread_cond_t* workerConditionC,
+             pthread_cond_t* receiverConditionC
+    );
     void start();
 };
 
