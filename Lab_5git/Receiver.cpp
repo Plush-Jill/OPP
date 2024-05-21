@@ -37,13 +37,16 @@ void Receiver::start() {
 
 //        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
-        std::cout << "Receiver " << this->processID << " start waiting" << std::endl;
+        std::cout << "Receiver " << this->processID << " started waiting" << ", " << "His queue size = " << this->taskQueue->getSize() << std::endl;
+
         while (!this->taskQueue->isEmpty()) {
             //std::unique_lock<std::mutex> lock (*(this->mutex));
             //this->receiverCondition->wait(lock);
-            pthread_cond_signal(this->receiverConditionC);
+            //pthread_cond_signal(this->receiverConditionC);
+            pthread_cond_wait(this->receiverConditionC, this->mutexC);
         }
 //        this->mutex->unlock();
+        std::cout << "Receiver " << this->processID << " ended waiting" << ", " << "His queue size = " << this->taskQueue->getSize() << std::endl;
         pthread_mutex_unlock(this->mutexC);
 //        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);

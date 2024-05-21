@@ -3,6 +3,10 @@
 #include <complex>
 
 void Worker::start() {
+    pthread_mutex_lock(this->mutexC);
+    std::cout << "Worker " << this->processID << " inits tasks." << std::endl;
+//    this->mutex->unlock();
+    pthread_mutex_unlock(this->mutexC);
     this->initTasks();
 //    this->mutex->lock();
     pthread_mutex_lock(this->mutexC);
@@ -10,7 +14,7 @@ void Worker::start() {
               << this->taskQueue->getSize() << " tasks." << std::endl;
 //    this->mutex->unlock();
     pthread_mutex_unlock(this->mutexC);
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
 
     while (true) {
 
@@ -68,21 +72,22 @@ void Worker::executeCurrentTask() {
         pthread_mutex_unlock(this->mutexC);
 //        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
-        std::cout << "Worker " << this->processID << " doing task " + task.to_string() << std::endl;
+        std::cout << "Worker " << this->processID << " doing task " + task.to_string()
+                << ", His queue size was = " << this->taskQueue->getSize() + 1 << std::endl;
 //        this->mutex->unlock();
         pthread_mutex_unlock(this->mutexC);
         //std::this_thread::sleep_for(std::chrono::nanoseconds(task.getWeight()));
         double res {};
         for (int i = 0; i < task.getWeight(); ++i) {
-            for (int j = 0; j < 180; ++j) {
+            for (int j = 0; j < 2000; ++j) {
                 res += sqrt(sqrt(sqrt(std::sqrt(i))));
             }
         }
 
 //        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
-        std::cout << "Worker " << this->processID << " did task " + task.to_string() << std::endl;
-
+        std::cout << "Worker " << this->processID << " did task " + task.to_string()
+        << ", His queue size = " << this->taskQueue->getSize() << std::endl;
 //        this->mutex->unlock();
         pthread_mutex_unlock(this->mutexC);
         this->currentProcessEndSumWeight += task.getWeight();

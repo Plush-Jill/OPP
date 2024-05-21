@@ -83,8 +83,17 @@ int main(int argc, char** argv) {
     }
     MPI_Barrier(MPI_COMM_WORLD);
     beginningTime = MPI_Wtime();
+    pthread_mutex_lock(&mutexC);
+    std::cout << "Process " << processID << " launching his worker." << std::endl;
+    pthread_mutex_unlock(&mutexC);
     std::thread workerThread (&Worker::start, &worker);
+    pthread_mutex_lock(&mutexC);
+    std::cout << "Process " << processID << " launching his receiver." << std::endl;
+    pthread_mutex_unlock(&mutexC);
     std::thread receiverThread (&Receiver::start, &receiver);
+    pthread_mutex_lock(&mutexC);
+    std::cout << "Process " << processID << " launching his sender." << std::endl;
+    pthread_mutex_unlock(&mutexC);
     std::thread senderThread (&Sender::start, &sender);
 
 
@@ -93,7 +102,10 @@ int main(int argc, char** argv) {
     senderThread.join();
 
     endingTime = MPI_Wtime();
-
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (processID == 0) {
+        std::cout << "END" << std::endl;
+    }
     printResults(processID, beginningTime, endingTime);
 
     MPI_Finalize();

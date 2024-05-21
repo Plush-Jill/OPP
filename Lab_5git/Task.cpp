@@ -25,10 +25,10 @@ bool Task::isEmpty() const {
 }
 
 std::string Task::to_string() const {
-    std::string string = "[TasK: ";
-    string += std::to_string(this->ID) + ", ";
-    string += std::to_string(this->processID) + ", ";
-    string += std::to_string(this->weight) + "]";
+    std::string string = "[Task: ";
+    string += "ID: " + std::to_string(this->ID) + ", ";
+    string += "PID: " + std::to_string(this->processID) + ", ";
+    string += "W: " + std::to_string(this->weight) + "]";
 
     return string;
 }

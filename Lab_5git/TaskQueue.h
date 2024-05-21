@@ -23,7 +23,6 @@ public:
 
     [[nodiscard]] int getCapacity() const;
     [[nodiscard]] int getSize() const;
-    [[nodiscard]] int getSumWeight() const;
 
 };
 

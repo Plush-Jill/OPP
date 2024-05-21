@@ -43,7 +43,7 @@ void Sender::start() {
 //        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
         std::cout << "Sender " << this->processID <<
-                     " sent task to process " << receiveProcessID << std::endl;
+                     " sent task " + task.to_string() + " to process " << receiveProcessID << std::endl;
 //        this->mutex->unlock();
         pthread_mutex_unlock(this->mutexC);
 
