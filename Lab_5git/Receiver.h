@@ -16,15 +16,11 @@ private:
     std::mutex* mutex;
     bool running;
 
-    std::condition_variable* workerCondition;
-    std::condition_variable* receiverCondition;
+    std::condition_variable_any* workerCondition;
+    std::condition_variable_any* receiverCondition;
 
     Worker* worker;
     Sender* sender;
-
-    pthread_mutex_t* mutexC;
-    pthread_cond_t* workerConditionC;
-    pthread_cond_t* receiverConditionC;
 
     [[nodiscard]] bool isRunning() const;
     void stop();
@@ -33,13 +29,10 @@ public:
              int processCount,
              TaskQueue* taskQueue,
              std::mutex* mutex,
-             std::condition_variable* workerCondition,
-             std::condition_variable* receiverCondition,
+             std::condition_variable_any* workerCondition,
+             std::condition_variable_any* receiverCondition,
              Worker* worker,
-             Sender* sender,
-             pthread_mutex_t* mutexC,
-             pthread_cond_t* workerConditionC,
-             pthread_cond_t* receiverConditionC
+             Sender* sender
     );
     void start();
 };

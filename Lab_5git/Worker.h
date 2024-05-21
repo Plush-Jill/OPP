@@ -14,17 +14,14 @@ private:
     std::mutex* mutex;
     bool running;
 
-    std::condition_variable* workerCondition;
-    std::condition_variable* receiverCondition;
+    std::condition_variable_any* workerCondition;
+    std::condition_variable_any* receiverCondition;
 
     int taskCount;
-    int currentProcessStartSumWeight;
-    int currentProcessEndSumWeight;
+    int startSumWeight;
+    int endSumWeight;
     const int totalSumWeight;// = 47000000;
 
-    pthread_mutex_t* mutexC;
-    pthread_cond_t* workerConditionC;
-    pthread_cond_t* receiverConditionC;
 
     void initTasks();
     void executeCurrentTask();
@@ -36,16 +33,17 @@ public:
                     int processCount,
                     TaskQueue* taskQueue,
                     std::mutex* mutex,
-                    std::condition_variable* workerCondition,
-                    std::condition_variable* receiverCondition,
+                    std::condition_variable_any* workerCondition,
+                    std::condition_variable_any* receiverCondition,
                     int taskCount,
-                    int totalSumWeight,
-                    pthread_mutex_t* mutexC,
-                    pthread_cond_t* workerConditionC,
-                    pthread_cond_t* receiverConditionC
+                    int totalSumWeight
     );
     void start();
     void stop();
+    [[nodiscard]] int getStartSumWeight() const;
+    [[nodiscard]] int getEndSumWeight() const;
+    [[nodiscard]] int getProcessID() const;
+    [[nodiscard]] int getProcessCount() const;
 };
 
 

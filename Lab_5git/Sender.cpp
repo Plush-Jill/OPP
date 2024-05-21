@@ -18,17 +18,17 @@ void Sender::start() {
         if (receiveProcessID == TERMINATION_SIGNAL) {
             break;
         }
-        pthread_mutex_lock(this->mutexC);
+        this->mutex->lock();
         std::cout << "Sender " << this->processID << " received request for task from process "
                   << receiveProcessID << std::endl;
-        pthread_mutex_unlock(this->mutexC);
-        pthread_mutex_lock(this->mutexC);
+        this->mutex->unlock();
+        this->mutex->lock();
         if (!this->taskQueue->isEmpty()){
             task = this->taskQueue->pop();
         } else {
             task = Task::createEmptyTask(processID);
         }
-        pthread_mutex_unlock(this->mutexC);
+        this->mutex->unlock();
 
         MPI_Send(&task,
                  sizeof(task),
@@ -36,10 +36,10 @@ void Sender::start() {
                  receiveProcessID,
                  RESPONSE_TAG,
                  MPI_COMM_WORLD);
-        pthread_mutex_lock(this->mutexC);
+        this->mutex->lock();
         std::cout << "Sender " << this->processID <<
                      " sent task " + task.to_string() + " to process " << receiveProcessID << std::endl;
-        pthread_mutex_unlock(this->mutexC);
+        this->mutex->unlock();
 
     }
 
@@ -50,25 +50,14 @@ Sender::Sender(int processID,
                int processCount,
                TaskQueue* taskQueue,
                std::mutex* mutex,
-               std::condition_variable* workerCondition,
-               std::condition_variable* receiverCondition,
-               pthread_mutex_t* mutexC,
-               pthread_cond_t* workerConditionC,
-               pthread_cond_t* receiverConditionC
-) : processID(processID), processCount(processCount),
-    taskQueue(taskQueue), mutex(mutex),
-    workerCondition(workerCondition), receiverCondition(receiverCondition),
-    mutexC(mutexC),
-    workerConditionC(workerConditionC), receiverConditionC(receiverConditionC)
-{
-//    this->processID = processID;
-//    this->processCount = processCount;
-//    this->taskQueue = taskQueue;
-//    this->mutex = mutex;
-//    this->workerCondition = workerCondition;
-//    this->receiverCondition = receiverCondition;
+               std::condition_variable_any* workerCondition,
+               std::condition_variable_any* receiverCondition
+               ) :
+               processID(processID), processCount(processCount),
+               taskQueue(taskQueue), mutex(mutex),
+               workerCondition(workerCondition), receiverCondition(receiverCondition), running(true)
+               {
 
-    this->running = true;
 }
 
 void Sender::stop() {

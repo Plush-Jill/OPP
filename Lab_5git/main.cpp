@@ -9,7 +9,7 @@
 
 
 void initMPI(int &argc, char **&argv);
-void printResults(int processID, double beginningTime, double endingTime);
+void printResults(Worker* worker, double beginningTime, double endingTime);
 
 
 int main(int argc, char** argv) {
@@ -32,16 +32,8 @@ int main(int argc, char** argv) {
 
     TaskQueue* taskQueue = new TaskQueue(totalTaskCount);
     std::mutex* mutex = new std::mutex();
-    std::condition_variable* workerCondition = new std::condition_variable();
-    std::condition_variable* receiverCondition = new std::condition_variable();
-
-    pthread_mutex_t mutexC;
-    pthread_cond_t workerConditionC;
-    pthread_cond_t receiverConditionC;
-
-    pthread_mutex_init(&mutexC, nullptr);
-    pthread_cond_init(&workerConditionC, nullptr);
-    pthread_cond_init(&receiverConditionC, nullptr);
+    std::condition_variable_any* workerCondition = new std::condition_variable_any();
+    std::condition_variable_any* receiverCondition = new std::condition_variable_any();
 
 
     Worker worker = Worker(processID,
@@ -51,20 +43,14 @@ int main(int argc, char** argv) {
                            workerCondition,
                            receiverCondition,
                            totalTaskCount,
-                           totalSumWeight,
-                           &mutexC,
-                           &workerConditionC,
-                           &receiverConditionC
+                           totalSumWeight
                            );
     Sender sender = Sender(processID,
                            processCount,
                            taskQueue,
                            mutex,
                            workerCondition,
-                           receiverCondition,
-                           &mutexC,
-                           &workerConditionC,
-                           &receiverConditionC
+                           receiverCondition
                            );
     Receiver receiver = Receiver(processID,
                                  processCount,
@@ -73,27 +59,12 @@ int main(int argc, char** argv) {
                                  workerCondition,
                                  receiverCondition,
                                  &worker,
-                                 &sender,
-                                 &mutexC,
-                                 &workerConditionC,
-                                 &receiverConditionC
+                                 &sender
     );
-    if (processID == 0) {
-        std::cout << "Starting..." << std::endl;
-    }
     MPI_Barrier(MPI_COMM_WORLD);
     beginningTime = MPI_Wtime();
-//    pthread_mutex_lock(&mutexC);
-//    std::cout << "Process " << processID << " launching his worker." << std::endl;
-//    pthread_mutex_unlock(&mutexC);
     std::thread workerThread (&Worker::start, &worker);
-//    pthread_mutex_lock(&mutexC);
-//    std::cout << "Process " << processID << " launching his receiver." << std::endl;
-//    pthread_mutex_unlock(&mutexC);
     std::thread receiverThread (&Receiver::start, &receiver);
-//    pthread_mutex_lock(&mutexC);
-//    std::cout << "Process " << processID << " launching his sender." << std::endl;
-//    pthread_mutex_unlock(&mutexC);
     std::thread senderThread (&Sender::start, &sender);
 
 
@@ -106,7 +77,7 @@ int main(int argc, char** argv) {
     if (processID == 0) {
         std::cout << "END" << std::endl;
     }
-    printResults(processID, beginningTime, endingTime);
+    printResults(&worker, beginningTime, endingTime);
 
     MPI_Finalize();
     return 0;
@@ -114,12 +85,22 @@ int main(int argc, char** argv) {
 
 
 
-void printResults(int processID, double beginningTime, double endingTime) {
+void printResults(Worker* worker, double beginningTime, double endingTime) {
     MPI_Barrier(MPI_COMM_WORLD);
-    std::cout << "Summary weight " << processID << ": " << std::endl; ///!!!!!!!!!!!!!
+    for (int i {}; i < worker->getProcessCount(); ++i) {
+        if (i == worker->getProcessID()) {
+            std::cout << "Summary weight of worker " << worker->getProcessID() << ":" << std::endl; ///!!!!!!!!!!!!!
+            std::cout << "At the beginning: " << worker->getStartSumWeight() << std::endl;
+            std::cout << "At the ending: " << worker->getEndSumWeight() << std::endl;
+        }
+        std::this_thread::sleep_for(std::chrono::nanoseconds(100));
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+
     MPI_Barrier(MPI_COMM_WORLD);
-    if (processID == 0) {
-        std::cout << "Time: " << endingTime - beginningTime << std::endl;
+    std::this_thread::sleep_for(std::chrono::nanoseconds(1000));
+    if (worker->getProcessID() == 0) {
+        std::cout << "\nTime: " << endingTime - beginningTime << std::endl;
     }
 }
 
