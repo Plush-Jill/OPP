@@ -35,23 +35,16 @@ void Receiver::start() {
         int receivedTasksCount = 0;
         Task task{};
 
-//        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
         std::cout << "Receiver " << this->processID << " started waiting" << ", " << "His queue size = " << this->taskQueue->getSize() << std::endl;
 
         while (!this->taskQueue->isEmpty()) {
-            //std::unique_lock<std::mutex> lock (*(this->mutex));
-            //this->receiverCondition->wait(lock);
-            //pthread_cond_signal(this->receiverConditionC);
             pthread_cond_wait(this->receiverConditionC, this->mutexC);
         }
-//        this->mutex->unlock();
         std::cout << "Receiver " << this->processID << " ended waiting" << ", " << "His queue size = " << this->taskQueue->getSize() << std::endl;
         pthread_mutex_unlock(this->mutexC);
-//        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
         std::cout << "Receiver " << this->processID << " sends requests" << std::endl;
-//        this->mutex->unlock();
         pthread_mutex_unlock(this->mutexC);
         for (int i {}; i < processCount; ++i) {
             if (i == this->processID) {
@@ -73,16 +66,12 @@ void Receiver::start() {
                      MPI_STATUS_IGNORE);
 
             if (!task.isEmpty()) {
-//                this->mutex->lock();
                 pthread_mutex_lock(this->mutexC);
                 std::cout << "Receiver " << this->processID
                           << " added task " + task.to_string() << std::endl;
-//                this->mutex->unlock();
                 pthread_mutex_unlock(this->mutexC);
-//                this->mutex->lock();
                 pthread_mutex_lock(this->mutexC);
                 this->taskQueue->push(task);
-//                this->mutex->unlock();
                 pthread_mutex_unlock(this->mutexC);
 
                 ++receivedTasksCount;
@@ -91,19 +80,14 @@ void Receiver::start() {
 
         if (receivedTasksCount == 0) {
 
-//            this->mutex->lock();
             pthread_mutex_lock(this->mutexC);
-            std::cout << "Receiver " << this->processID << " hasn't get task" << std::endl;
+            std::cout << "Receiver " << this->processID << " hasn't get valid tasks" << std::endl;
             this->stop();
-//            this->mutex->unlock();
             pthread_mutex_unlock(this->mutexC);
         }
 
-//        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
-        ///this->workerCondition->notify_one();
         pthread_cond_signal(this->workerConditionC);
-//        this->mutex->unlock();
         pthread_mutex_unlock(this->mutexC);
     }
 

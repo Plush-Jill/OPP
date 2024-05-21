@@ -18,20 +18,16 @@ void Sender::start() {
         if (receiveProcessID == TERMINATION_SIGNAL) {
             break;
         }
-//        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
         std::cout << "Sender " << this->processID << " received request for task from process "
                   << receiveProcessID << std::endl;
-//        this->mutex->unlock();
         pthread_mutex_unlock(this->mutexC);
-//        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
         if (!this->taskQueue->isEmpty()){
             task = this->taskQueue->pop();
         } else {
             task = Task::createEmptyTask(processID);
         }
-//        this->mutex->unlock();
         pthread_mutex_unlock(this->mutexC);
 
         MPI_Send(&task,
@@ -40,11 +36,9 @@ void Sender::start() {
                  receiveProcessID,
                  RESPONSE_TAG,
                  MPI_COMM_WORLD);
-//        this->mutex->lock();
         pthread_mutex_lock(this->mutexC);
         std::cout << "Sender " << this->processID <<
                      " sent task " + task.to_string() + " to process " << receiveProcessID << std::endl;
-//        this->mutex->unlock();
         pthread_mutex_unlock(this->mutexC);
 
     }

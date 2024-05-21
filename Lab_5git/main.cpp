@@ -17,8 +17,8 @@ int main(int argc, char** argv) {
     int processCount;
     double beginningTime;
     double endingTime;
-    int totalTaskCount = 21;
-    int totalSumWeight = 1200;
+    int totalTaskCount = 120;
+    int totalSumWeight = 100000;
 
     try {
         initMPI(argc, argv);
@@ -83,17 +83,17 @@ int main(int argc, char** argv) {
     }
     MPI_Barrier(MPI_COMM_WORLD);
     beginningTime = MPI_Wtime();
-    pthread_mutex_lock(&mutexC);
-    std::cout << "Process " << processID << " launching his worker." << std::endl;
-    pthread_mutex_unlock(&mutexC);
+//    pthread_mutex_lock(&mutexC);
+//    std::cout << "Process " << processID << " launching his worker." << std::endl;
+//    pthread_mutex_unlock(&mutexC);
     std::thread workerThread (&Worker::start, &worker);
-    pthread_mutex_lock(&mutexC);
-    std::cout << "Process " << processID << " launching his receiver." << std::endl;
-    pthread_mutex_unlock(&mutexC);
+//    pthread_mutex_lock(&mutexC);
+//    std::cout << "Process " << processID << " launching his receiver." << std::endl;
+//    pthread_mutex_unlock(&mutexC);
     std::thread receiverThread (&Receiver::start, &receiver);
-    pthread_mutex_lock(&mutexC);
-    std::cout << "Process " << processID << " launching his sender." << std::endl;
-    pthread_mutex_unlock(&mutexC);
+//    pthread_mutex_lock(&mutexC);
+//    std::cout << "Process " << processID << " launching his sender." << std::endl;
+//    pthread_mutex_unlock(&mutexC);
     std::thread senderThread (&Sender::start, &sender);
 
 
