@@ -1,5 +1,4 @@
 #include "include/TaskQueue.h"
-#include "include/Exceptions.h"
 #include "include/Worker.h"
 #include "include/Receiver.h"
 #include "include/Sender.h"
@@ -9,7 +8,6 @@
 #include <iostream>
 
 
-void initMPI(int &argc, char **&argv);
 void printResults(const std::shared_ptr<Worker>& worker, double time);
 
 
@@ -19,13 +17,16 @@ int main(int argc, char** argv) {
     double beginningTime;
     double endingTime;
     int tasksCount = 2000;
-    int sumWeight = 8000000;
+    int sumWeight = 80000;
 
-    try {
-        initMPI(argc, argv);
-    }catch (InitMPIException& exception) {
-        std::cerr << exception.what() << std::endl;
-        return 1;
+
+    int required = MPI_THREAD_MULTIPLE;
+    int provided;
+
+    MPI_Init_thread(&argc, &argv, required, &provided);
+
+    if (required != provided) {
+        std::cout << "MPI cannot provide required thread support level" << std::endl;
     }
 
     MPI_Comm_rank(MPI_COMM_WORLD, &processID);
@@ -64,11 +65,12 @@ int main(int argc, char** argv) {
     );
     MPI_Barrier(MPI_COMM_WORLD);
     beginningTime = MPI_Wtime();
-    worker->start();
+    std::thread workerThread (&Worker::start, worker);
     std::thread receiverThread (&Receiver::start, receiver);
     std::thread senderThread (&Sender::start, sender);
 
 
+    workerThread.join();
     receiverThread.join();
     senderThread.join();
 
@@ -112,13 +114,3 @@ void printResults(const std::shared_ptr<Worker>& worker, double time) {
     }
 }
 
-void initMPI(int &argc, char **&argv) noexcept(false){
-    int required = MPI_THREAD_MULTIPLE;
-    int provided;
-
-    MPI_Init_thread(&argc, &argv, required, &provided);
-
-    if (required != provided) {
-        throw InitMPIException("MPI cannot provide required thread support level");
-    }
-}

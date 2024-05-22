@@ -1,6 +1,4 @@
 #include "../include/Receiver.h"
-#include "../include/Worker.h"
-#include "../include/Sender.h"
 #include <mpi.h>
 #include <thread>
 
@@ -11,11 +9,13 @@ void Receiver::start() {
         int receivedTasksCount = 0;
         Task task{};
 
-        while (!this->taskQueue->isEmpty()) {
+        {
             std::unique_lock<std::mutex> lock (*(this->mutex));
-            this->receiverCondition->wait(lock);
+            while (!this->taskQueue->isEmpty()) {
+                this->receiverCondition->wait(lock);
+            }
         }
-        this->mutex->unlock();
+        //this->mutex->unlock();
 
         for (int i {this->processCount - 1}; i >= 0; --i) {
             if (i == this->processID) {

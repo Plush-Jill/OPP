@@ -9,7 +9,6 @@ add_executable(Lab_5
         include/Task.h
         src/TaskQueue.cpp
         include/TaskQueue.h
-        include/Exceptions.h
         src/Worker.cpp
         include/Worker.h
         src/Receiver.cpp
