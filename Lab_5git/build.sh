@@ -1,18 +1,24 @@
 #!/bin/bash
 
-mpic++ -c -std=c++20 -O3 -lm main.cpp
-mpic++ -c -std=c++20 -O3 -lm Task.cpp
-#mpic++ -c -std=c++20 -O3 -lm Task.h
-mpic++ -c -std=c++20 -O3 -lm TaskQueue.cpp
-#mpic++ -c -std=c++20 -O3 -lm TaskQueue.h
-#mpic++ -c -std=c++20 -O3 -lm Exceptions.h
-mpic++ -c -std=c++20 -O3 -lm Worker.cpp
-#mpic++ -c -std=c++20 -O3 -lm Worker.h
-mpic++ -c -std=c++20 -O3 -lm Receiver.cpp
-#mpic++ -c -std=c++20 -O3 -lm Receiver.h
-mpic++ -c -std=c++20 -O3 -lm Sender.cpp
-#mpic++ -c -std=c++20 -O3 -lm Sender.h
-#mpic++ -c -std=c++20 -O3 -lm Defines.h
 
-mpic++ -std=c++20 -fmodules-ts -o main main.o Task.o TaskQueue.o Worker.o Receiver.o Sender.o
-# Task_impl.o TaskQueue_impl.o
+
+module load mpi/mpich-x86_64
+
+/home/fit_opp/22202/mpe2-2.4.9b/bin/mpecxx main.cpp -c -pthread -O3 -lm
+/home/fit_opp/22202/mpe2-2.4.9b/bin/mpecxx Task.cpp -c -pthread -O3 -lm
+/home/fit_opp/22202/mpe2-2.4.9b/bin/mpecxx TaskQueue.cpp -c -pthread -O3 -lm
+/home/fit_opp/22202/mpe2-2.4.9b/bin/mpecxx Worker.cpp -c -pthread -O3 -lm
+/home/fit_opp/22202/mpe2-2.4.9b/bin/mpecxx Receiver.cpp -c -pthread -O3 -lm
+/home/fit_opp/22202/mpe2-2.4.9b/bin/mpecxx Sender.cpp -c -pthread -O3 -lm
+
+
+/home/fit_opp/22202/mpe2-2.4.9b/bin/mpecxx main.o Task.o TaskQueue.o Worker.o Receiver.o Sender.o -pthread -o main
+
+
+
+
+
+
+
+
+module unload mpi/mpich-x86_64

@@ -1,46 +1,38 @@
 #include "Sender.h"
-#include <mpi/mpi.h>
+#include <mpi.h>
 #include <thread>
+#include <utility>
 
 void Sender::start() {
     while (true) {
-        int receiveProcessID;
-        Task task{};
+        int receiverProcessID;
+        Task task {};
 
-        MPI_Recv(&receiveProcessID,
+        MPI_Recv(&receiverProcessID,
                  1,
                  MPI_INT,
                  MPI_ANY_SOURCE,
-                 REQUEST_TAG,
+                 Sender::taskRequestMPITag,
                  MPI_COMM_WORLD,
                  MPI_STATUS_IGNORE);
 
-        if (receiveProcessID == TERMINATION_SIGNAL) {
+        if (receiverProcessID == Sender::endingSignal) {
             break;
         }
-        this->mutex->lock();
-        std::cout << "Sender " << this->processID << " received request for task from process "
-                  << receiveProcessID << std::endl;
-        this->mutex->unlock();
         this->mutex->lock();
         if (!this->taskQueue->isEmpty()){
             task = this->taskQueue->pop();
         } else {
-            task = Task::createEmptyTask(processID);
+            task = Task::createEmptyTask(this->processID);
         }
         this->mutex->unlock();
 
         MPI_Send(&task,
                  sizeof(task),
                  MPI_BYTE,
-                 receiveProcessID,
-                 RESPONSE_TAG,
+                 receiverProcessID,
+                 Sender::taskReplyMPITag,
                  MPI_COMM_WORLD);
-        this->mutex->lock();
-        std::cout << "Sender " << this->processID <<
-                     " sent task " + task.to_string() + " to process " << receiveProcessID << std::endl;
-        this->mutex->unlock();
-
     }
 
     std::this_thread::yield();
@@ -48,14 +40,14 @@ void Sender::start() {
 
 Sender::Sender(int processID,
                int processCount,
-               TaskQueue* taskQueue,
-               std::mutex* mutex,
-               std::condition_variable_any* workerCondition,
-               std::condition_variable_any* receiverCondition
+               std::shared_ptr<TaskQueue> taskQueue,
+               std::shared_ptr<std::mutex> mutex,
+               std::shared_ptr<std::condition_variable> workerCondition,
+               std::shared_ptr<std::condition_variable> receiverCondition
                ) :
                processID(processID), processCount(processCount),
-               taskQueue(taskQueue), mutex(mutex),
-               workerCondition(workerCondition), receiverCondition(receiverCondition), running(true)
+               taskQueue(std::move(taskQueue)), mutex(std::move(mutex)),
+               workerCondition(std::move(workerCondition)), receiverCondition(std::move(receiverCondition)), running(true)
                {
 
 }

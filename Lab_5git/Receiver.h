@@ -3,7 +3,6 @@
 
 
 #include "TaskQueue.h"
-#include "Defines.h"
 #include "Worker.h"
 #include "Sender.h"
 #include <condition_variable>
@@ -12,27 +11,31 @@ class Receiver {
 private:
     const int processID;
     const int processCount;
-    TaskQueue* taskQueue;
-    std::mutex* mutex;
+    std::shared_ptr<TaskQueue> const taskQueue;
+    std::shared_ptr<std::mutex> const mutex;
     bool running;
 
-    std::condition_variable_any* workerCondition;
-    std::condition_variable_any* receiverCondition;
+    std::shared_ptr<std::condition_variable> const workerCondition;
+    std::shared_ptr<std::condition_variable> const receiverCondition;
 
-    Worker* worker;
-    Sender* sender;
+    std::shared_ptr<Worker> const worker;
+    std::shared_ptr<Sender> const sender;
+
+    static const int taskRequestMPITag = 0xa;
+    static const int taskReplyMPITag = 0xb;
+    static const int endingSignal = 404;
 
     [[nodiscard]] bool isRunning() const;
     void stop();
 public:
     Receiver(int processID,
              int processCount,
-             TaskQueue* taskQueue,
-             std::mutex* mutex,
-             std::condition_variable_any* workerCondition,
-             std::condition_variable_any* receiverCondition,
-             Worker* worker,
-             Sender* sender
+             std::shared_ptr<TaskQueue> taskQueue,
+             std::shared_ptr<std::mutex> mutex,
+             std::shared_ptr<std::condition_variable> workerCondition,
+             std::shared_ptr<std::condition_variable> receiverCondition,
+             std::shared_ptr<Worker> worker,
+             std::shared_ptr<Sender> sender
     );
     void start();
 };

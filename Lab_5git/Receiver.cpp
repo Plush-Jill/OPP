@@ -1,47 +1,42 @@
 #include "Receiver.h"
 #include "Worker.h"
 #include "Sender.h"
-#include <mpi/mpi.h>
+#include <mpi.h>
+#include <thread>
+
+#include <utility>
 
 void Receiver::start() {
     while (this->isRunning()) {
         int receivedTasksCount = 0;
         Task task{};
-        std::cout << "Receiver " << this->processID << " started waiting" << ", " << "His queue size = " << this->taskQueue->getSize() << std::endl;
 
         while (!this->taskQueue->isEmpty()) {
             std::unique_lock<std::mutex> lock (*(this->mutex));
             this->receiverCondition->wait(lock);
         }
-        std::cout << "Receiver " << this->processID << " ended waiting" << ", " << "His queue size = " << this->taskQueue->getSize() << std::endl;
         this->mutex->unlock();
-        this->mutex->lock();
-        std::cout << "Receiver " << this->processID << " sends requests" << std::endl;
-        this->mutex->unlock();
-        for (int i {}; i < processCount; ++i) {
+
+        for (int i {}; i < this->processCount; ++i) {
             if (i == this->processID) {
                 continue;
             }
 
-            MPI_Send(&processID,
+            MPI_Send(&this->processID,
                      1,
                      MPI_INT,
                      i,
-                     REQUEST_TAG,
+                     Receiver::taskRequestMPITag,
                      MPI_COMM_WORLD);
             MPI_Recv(&task,
                      sizeof(task),
                      MPI_BYTE,
                      i,
-                     RESPONSE_TAG,
+                     Receiver::taskReplyMPITag,
                      MPI_COMM_WORLD,
                      MPI_STATUS_IGNORE);
 
             if (!task.isEmpty()) {
-                this->mutex->lock();
-                std::cout << "Receiver " << this->processID
-                          << " added task " + task.to_string() << std::endl;
-                this->mutex->unlock();
                 this->mutex->lock();
                 this->taskQueue->push(task);
                 this->mutex->unlock();
@@ -53,7 +48,6 @@ void Receiver::start() {
         if (receivedTasksCount == 0) {
 
             this->mutex->lock();
-            std::cout << "Receiver " << this->processID << " hasn't get valid tasks" << std::endl;
             this->stop();
             this->mutex->unlock();
         }
@@ -64,12 +58,12 @@ void Receiver::start() {
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    int terminationSignal = TERMINATION_SIGNAL;
-    MPI_Send(&terminationSignal,
+    int buf = Receiver::endingSignal;
+    MPI_Send(&buf,
              1,
              MPI_INT,
              processID,
-             REQUEST_TAG,
+             Receiver::taskRequestMPITag,
              MPI_COMM_WORLD);
 
     std::this_thread::yield();
@@ -85,17 +79,17 @@ void Receiver::stop() {
 
 Receiver::Receiver(int processID,
                    int processCount,
-                   TaskQueue* taskQueue,
-                   std::mutex* mutex,
-                   std::condition_variable_any* workerCondition,
-                   std::condition_variable_any* receiverCondition,
-                   Worker* worker,
-                   Sender* sender
+                   std::shared_ptr<TaskQueue> taskQueue,
+                   std::shared_ptr<std::mutex> mutex,
+                   std::shared_ptr<std::condition_variable> workerCondition,
+                   std::shared_ptr<std::condition_variable> receiverCondition,
+                   std::shared_ptr<Worker> worker,
+                   std::shared_ptr<Sender> sender
                    ) :
                    processID(processID), processCount(processCount),
-                   taskQueue(taskQueue), mutex(mutex),
-                   workerCondition(workerCondition), receiverCondition(receiverCondition),
-                   worker(worker), sender(sender),
+                   taskQueue(std::move(taskQueue)), mutex(std::move(mutex)),
+                   workerCondition(std::move(workerCondition)), receiverCondition(std::move(receiverCondition)),
+                   worker(std::move(worker)), sender(std::move(sender)),
                    running(true)
                    {
 

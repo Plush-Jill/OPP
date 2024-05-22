@@ -51,42 +51,42 @@ build cmake_object_order_depends_target_Lab_5: phony || CMakeFiles/Lab_5.dir
 
 build CMakeFiles/Lab_5.dir/main.cpp.o: CXX_COMPILER__Lab_5_unscanned_Debug /home/plushjill/All_Random/GitHub/OPP/Lab_5git/main.cpp || cmake_object_order_depends_target_Lab_5
   DEP_FILE = CMakeFiles/Lab_5.dir/main.cpp.o.d
-  FLAGS = -lm -g -std=gnu++23 -fdiagnostics-color=always
+  FLAGS = -lm -O3 -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi
   OBJECT_DIR = CMakeFiles/Lab_5.dir
   OBJECT_FILE_DIR = CMakeFiles/Lab_5.dir
 
 build CMakeFiles/Lab_5.dir/Task.cpp.o: CXX_COMPILER__Lab_5_unscanned_Debug /home/plushjill/All_Random/GitHub/OPP/Lab_5git/Task.cpp || cmake_object_order_depends_target_Lab_5
   DEP_FILE = CMakeFiles/Lab_5.dir/Task.cpp.o.d
-  FLAGS = -lm -g -std=gnu++23 -fdiagnostics-color=always
+  FLAGS = -lm -O3 -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi
   OBJECT_DIR = CMakeFiles/Lab_5.dir
   OBJECT_FILE_DIR = CMakeFiles/Lab_5.dir
 
 build CMakeFiles/Lab_5.dir/TaskQueue.cpp.o: CXX_COMPILER__Lab_5_unscanned_Debug /home/plushjill/All_Random/GitHub/OPP/Lab_5git/TaskQueue.cpp || cmake_object_order_depends_target_Lab_5
   DEP_FILE = CMakeFiles/Lab_5.dir/TaskQueue.cpp.o.d
-  FLAGS = -lm -g -std=gnu++23 -fdiagnostics-color=always
+  FLAGS = -lm -O3 -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi
   OBJECT_DIR = CMakeFiles/Lab_5.dir
   OBJECT_FILE_DIR = CMakeFiles/Lab_5.dir
 
 build CMakeFiles/Lab_5.dir/Worker.cpp.o: CXX_COMPILER__Lab_5_unscanned_Debug /home/plushjill/All_Random/GitHub/OPP/Lab_5git/Worker.cpp || cmake_object_order_depends_target_Lab_5
   DEP_FILE = CMakeFiles/Lab_5.dir/Worker.cpp.o.d
-  FLAGS = -lm -g -std=gnu++23 -fdiagnostics-color=always
+  FLAGS = -lm -O3 -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi
   OBJECT_DIR = CMakeFiles/Lab_5.dir
   OBJECT_FILE_DIR = CMakeFiles/Lab_5.dir
 
 build CMakeFiles/Lab_5.dir/Receiver.cpp.o: CXX_COMPILER__Lab_5_unscanned_Debug /home/plushjill/All_Random/GitHub/OPP/Lab_5git/Receiver.cpp || cmake_object_order_depends_target_Lab_5
   DEP_FILE = CMakeFiles/Lab_5.dir/Receiver.cpp.o.d
-  FLAGS = -lm -g -std=gnu++23 -fdiagnostics-color=always
+  FLAGS = -lm -O3 -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi
   OBJECT_DIR = CMakeFiles/Lab_5.dir
   OBJECT_FILE_DIR = CMakeFiles/Lab_5.dir
 
 build CMakeFiles/Lab_5.dir/Sender.cpp.o: CXX_COMPILER__Lab_5_unscanned_Debug /home/plushjill/All_Random/GitHub/OPP/Lab_5git/Sender.cpp || cmake_object_order_depends_target_Lab_5
   DEP_FILE = CMakeFiles/Lab_5.dir/Sender.cpp.o.d
-  FLAGS = -lm -g -std=gnu++23 -fdiagnostics-color=always
+  FLAGS = -lm -O3 -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi
   OBJECT_DIR = CMakeFiles/Lab_5.dir
   OBJECT_FILE_DIR = CMakeFiles/Lab_5.dir
@@ -100,7 +100,7 @@ build CMakeFiles/Lab_5.dir/Sender.cpp.o: CXX_COMPILER__Lab_5_unscanned_Debug /ho
 # Link the executable Lab_5
 
 build Lab_5: CXX_EXECUTABLE_LINKER__Lab_5_Debug CMakeFiles/Lab_5.dir/main.cpp.o CMakeFiles/Lab_5.dir/Task.cpp.o CMakeFiles/Lab_5.dir/TaskQueue.cpp.o CMakeFiles/Lab_5.dir/Worker.cpp.o CMakeFiles/Lab_5.dir/Receiver.cpp.o CMakeFiles/Lab_5.dir/Sender.cpp.o
-  FLAGS = -lm -g
+  FLAGS = -lm -O3 -g
   OBJECT_DIR = CMakeFiles/Lab_5.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -116,8 +116,8 @@ build Lab_5: CXX_EXECUTABLE_LINKER__Lab_5_Debug CMakeFiles/Lab_5.dir/main.cpp.o 
 
 build cmake_object_order_depends_target_Lab_5c: phony || CMakeFiles/Lab_5c.dir
 
-build CMakeFiles/Lab_5c.dir/mainC.c.o: C_COMPILER__Lab_5c_unscanned_Debug /home/plushjill/All_Random/GitHub/OPP/Lab_5git/mainC.c || cmake_object_order_depends_target_Lab_5c
-  DEP_FILE = CMakeFiles/Lab_5c.dir/mainC.c.o.d
+build CMakeFiles/Lab_5c.dir/main.c.o: C_COMPILER__Lab_5c_unscanned_Debug /home/plushjill/All_Random/GitHub/OPP/Lab_5git/main.c || cmake_object_order_depends_target_Lab_5c
+  DEP_FILE = CMakeFiles/Lab_5c.dir/main.c.o.d
   FLAGS = -g -fdiagnostics-color=always
   INCLUDES = -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi
   OBJECT_DIR = CMakeFiles/Lab_5c.dir
@@ -131,45 +131,13 @@ build CMakeFiles/Lab_5c.dir/mainC.c.o: C_COMPILER__Lab_5c_unscanned_Debug /home/
 #############################################
 # Link the executable Lab_5c
 
-build Lab_5c: C_EXECUTABLE_LINKER__Lab_5c_Debug CMakeFiles/Lab_5c.dir/mainC.c.o
+build Lab_5c: C_EXECUTABLE_LINKER__Lab_5c_Debug CMakeFiles/Lab_5c.dir/main.c.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/Lab_5c.dir
   POST_BUILD = :
   PRE_LINK = :
   TARGET_FILE = Lab_5c
   TARGET_PDB = Lab_5c.dbg
-
-# =============================================================================
-# Object build statements for EXECUTABLE target n5
-
-
-#############################################
-# Order-only phony target for n5
-
-build cmake_object_order_depends_target_n5: phony || CMakeFiles/n5.dir
-
-build CMakeFiles/n5.dir/n5.cpp.o: CXX_COMPILER__n5_unscanned_Debug /home/plushjill/All_Random/GitHub/OPP/Lab_5git/n5.cpp || cmake_object_order_depends_target_n5
-  DEP_FILE = CMakeFiles/n5.dir/n5.cpp.o.d
-  FLAGS = -lm -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi
-  OBJECT_DIR = CMakeFiles/n5.dir
-  OBJECT_FILE_DIR = CMakeFiles/n5.dir
-
-
-# =============================================================================
-# Link build statements for EXECUTABLE target n5
-
-
-#############################################
-# Link the executable n5
-
-build n5: CXX_EXECUTABLE_LINKER__n5_Debug CMakeFiles/n5.dir/n5.cpp.o
-  FLAGS = -lm -g
-  OBJECT_DIR = CMakeFiles/n5.dir
-  POST_BUILD = :
-  PRE_LINK = :
-  TARGET_FILE = n5
-  TARGET_PDB = n5.dbg
 
 
 #############################################
@@ -205,7 +173,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 #############################################
 # Folder: /home/plushjill/All_Random/GitHub/OPP/Lab_5git/cmake-build-debug
 
-build all: phony Lab_5 Lab_5c n5
+build all: phony Lab_5 Lab_5c
 
 # =============================================================================
 # Built-in targets

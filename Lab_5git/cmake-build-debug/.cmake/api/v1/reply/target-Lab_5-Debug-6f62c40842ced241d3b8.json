@@ -31,7 +31,7 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 23,
+				"line" : 21,
 				"parent" : 0
 			}
 		]
@@ -42,7 +42,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : " -lm -g -std=gnu++23 -fdiagnostics-color=always"
+					"fragment" : " -lm -O3 -g -std=gnu++23 -fdiagnostics-color=always"
 				}
 			],
 			"includes" : 
@@ -82,7 +82,7 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-lm -g",
+				"fragment" : "-lm -O3 -g",
 				"role" : "flags"
 			},
 			{
@@ -122,8 +122,7 @@
 				5,
 				7,
 				9,
-				11,
-				12
+				11
 			]
 		}
 	],
@@ -193,11 +192,6 @@
 		{
 			"backtrace" : 1,
 			"path" : "Sender.h",
-			"sourceGroupIndex" : 1
-		},
-		{
-			"backtrace" : 1,
-			"path" : "Defines.h",
 			"sourceGroupIndex" : 1
 		}
 	],
