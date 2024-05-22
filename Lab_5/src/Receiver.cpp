@@ -52,9 +52,7 @@ void Receiver::start() {
             this->mutex->unlock();
         }
 
-        this->mutex->lock();
         this->workerCondition->notify_one();
-        this->mutex->unlock();
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
