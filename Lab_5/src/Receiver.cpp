@@ -17,7 +17,7 @@ void Receiver::start() {
         }
         this->mutex->unlock();
 
-        for (int i {}; i < this->processCount; ++i) {
+        for (int i {this->processCount - 1}; i >= 0; --i) {
             if (i == this->processID) {
                 continue;
             }
