@@ -96,7 +96,7 @@ void printResults(const std::shared_ptr<Worker>& worker, double time) {
     MPI_Barrier(MPI_COMM_WORLD);
     for (int i {}; i < worker->getProcessCount(); ++i) {
         if (i == worker->getProcessID()) {
-            std::cout << "Total weight of completed tasks of " << worker->getProcessID() << "'th worker :\n"
+            std::cout << "Total weight of tasks of " << worker->getProcessID() << "'th worker :\n"
             << "At the beginning: " << worker->getStartSumWeight()
             << "\nAt the ending: " << worker->getEndSumWeight() << std::endl;
         }
