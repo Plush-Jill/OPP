@@ -54,13 +54,14 @@ bool Worker::isRunning() const {
     return this->running;
 }
 void Worker::initTasks() {
-    int minWeight = 2 * this->totalSumWeight / (this->taskCount * (this->processCount + 1));
+    int baseWeight = 2 * this->totalSumWeight / (this->taskCount * (this->processCount + 1));
     int nextTaskID = 1;
 
     for (int i {}; i < this->taskCount; ++i){
 
         if (i % this->processCount == this->processID) {
-            int weight = minWeight * (i % this->processCount + 1);
+            int weight = baseWeight * (i % this->processCount + 1);
+
             Task task = Task(nextTaskID, this->processID, weight);
             this->taskQueue->push(task);
 
