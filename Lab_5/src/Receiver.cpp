@@ -1,6 +1,6 @@
-#include "Receiver.h"
-#include "Worker.h"
-#include "Sender.h"
+#include "../include/Receiver.h"
+#include "../include/Worker.h"
+#include "../include/Sender.h"
 #include <mpi.h>
 #include <thread>
 

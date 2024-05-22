@@ -1,4 +1,4 @@
-#include "Sender.h"
+#include "../include/Sender.h"
 #include <mpi.h>
 #include <thread>
 #include <utility>

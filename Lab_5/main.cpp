@@ -1,8 +1,8 @@
-#include "TaskQueue.h"
-#include "Exceptions.h"
-#include "Worker.h"
-#include "Receiver.h"
-#include "Sender.h"
+#include "include/TaskQueue.h"
+#include "include/Exceptions.h"
+#include "include/Worker.h"
+#include "include/Receiver.h"
+#include "include/Sender.h"
 #include <mpi.h>
 #include <condition_variable>
 #include <thread>
@@ -65,13 +65,13 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     beginningTime = MPI_Wtime();
     std::thread workerThread (&Worker::start, worker);
-//    std::thread receiverThread (&Receiver::start, receiver);
-//    std::thread senderThread (&Sender::start, sender);
+    std::thread receiverThread (&Receiver::start, receiver);
+    std::thread senderThread (&Sender::start, sender);
 
 
     workerThread.join();
-//    receiverThread.join();
-//    senderThread.join();
+    receiverThread.join();
+    senderThread.join();
 
     endingTime = MPI_Wtime();
     double tmpTime {endingTime - beginningTime};
