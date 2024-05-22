@@ -6,21 +6,21 @@
 void Worker::start() {
     this->initTasks();
 
-    while (true) {
+//    while (true) {
 
         executeCurrentTask();
-        while (this->taskQueue->isEmpty() && this->isRunning()) {
-            std::unique_lock<std::mutex> lock (*(this->mutex));
-            this->receiverCondition->notify_one();
-            this->workerCondition->wait(lock);
-        }
-
-        if (!isRunning()) {
-            this->mutex->unlock();
-            break;
-        }
-        this->mutex->unlock();
-    }
+//        while (this->taskQueue->isEmpty() && this->isRunning()) {
+//            std::unique_lock<std::mutex> lock (*(this->mutex));
+//            this->receiverCondition->notify_one();
+//            this->workerCondition->wait(lock);
+//        }
+//
+//        if (!isRunning()) {
+//            this->mutex->unlock();
+//            break;
+//        }
+//        this->mutex->unlock();
+//    }
 
     std::this_thread::yield();
 }

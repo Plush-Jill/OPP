@@ -65,24 +65,24 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     beginningTime = MPI_Wtime();
     std::thread workerThread (&Worker::start, worker);
-    std::thread receiverThread (&Receiver::start, receiver);
-    std::thread senderThread (&Sender::start, sender);
+//    std::thread receiverThread (&Receiver::start, receiver);
+//    std::thread senderThread (&Sender::start, sender);
 
 
     workerThread.join();
-    receiverThread.join();
-    senderThread.join();
+//    receiverThread.join();
+//    senderThread.join();
 
     endingTime = MPI_Wtime();
     double tmpTime {endingTime - beginningTime};
     double time {};
-    /*MPI_Reduce(&tmpTime,
+    MPI_Reduce(&tmpTime,
                &time,
                1,
                MPI_DOUBLE,
                MPI_MAX,
                0,
-               MPI_COMM_WORLD);*/
+               MPI_COMM_WORLD);
 
 
     printResults(worker, time);
