@@ -21,6 +21,7 @@ private:
     int endSumWeight;
     const int totalSumWeight;
 
+    double sumForAvoidingCompilerOptimization;
 
     void initTasks();
     void executeCurrentTask();

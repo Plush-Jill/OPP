@@ -10,7 +10,7 @@
 
 
 void initMPI(int &argc, char **&argv);
-void printResults(const std::shared_ptr<Worker>& worker, double beginningTime, double endingTime);
+void printResults(const std::shared_ptr<Worker>& worker, double time);
 
 
 int main(int argc, char** argv) {
@@ -74,9 +74,18 @@ int main(int argc, char** argv) {
     senderThread.join();
 
     endingTime = MPI_Wtime();
+    double tmpTime {endingTime - beginningTime};
+    double time {};
+    /*MPI_Reduce(&tmpTime,
+               &time,
+               1,
+               MPI_DOUBLE,
+               MPI_MAX,
+               0,
+               MPI_COMM_WORLD);*/
 
 
-    printResults(worker, beginningTime, endingTime);
+    printResults(worker, time);
 
     MPI_Finalize();
     return 0;
@@ -84,7 +93,7 @@ int main(int argc, char** argv) {
 
 
 
-void printResults(const std::shared_ptr<Worker>& worker, double beginningTime, double endingTime) {
+void printResults(const std::shared_ptr<Worker>& worker, double time) {
     MPI_Barrier(MPI_COMM_WORLD);
     for (int i {}; i < worker->getProcessCount(); ++i) {
         if (i == worker->getProcessID()) {
@@ -100,7 +109,7 @@ void printResults(const std::shared_ptr<Worker>& worker, double beginningTime, d
     MPI_Barrier(MPI_COMM_WORLD);
     std::this_thread::sleep_for(std::chrono::nanoseconds(1000));
     if (worker->getProcessID() == 0) {
-        std::cout << "\nTime: " << endingTime - beginningTime << std::endl;
+        std::cout << "\nTime: " << time << std::endl;
     }
 }
 

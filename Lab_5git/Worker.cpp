@@ -37,7 +37,16 @@ void Worker::executeCurrentTask() {
         task = this->taskQueue->pop();
         this->mutex->unlock();
 
-        std::this_thread::sleep_for(std::chrono::nanoseconds(task.getWeight() * 10000));
+        //std::this_thread::sleep_for(std::chrono::nanoseconds(task.getWeight() * 10000));
+        double tmp {};
+        for (int i {}; i < task.getWeight(); ++i) {
+            for (int j {}; j < 2500; ++j) {
+                tmp += sqrt(sqrt(sqrt(sqrt(sqrt(i)))));
+            }
+        }
+        tmp = 1 + 1/tmp;
+        this->sumForAvoidingCompilerOptimization += tmp;
+
         this->endSumWeight += task.getWeight();
     }
 }
@@ -49,10 +58,10 @@ void Worker::initTasks() {
     int nextTaskID = 1;
 
     for (int i {}; i < this->taskCount; ++i){
-        int weight = minWeight * (i % this->processCount + 1);
-        Task task = Task(nextTaskID, this->processID, weight);
 
         if (i % this->processCount == this->processID) {
+            int weight = minWeight * (i % this->processCount + 1);
+            Task task = Task(nextTaskID, this->processID, weight);
             this->taskQueue->push(task);
             ++nextTaskID;
             this->startSumWeight += weight;
@@ -74,7 +83,7 @@ Worker::Worker(int processID,
                workerCondition(std::move(workerCondition)), receiverCondition(std::move(receiverCondition)),
                totalSumWeight(totalSumWeight),
                taskCount(taskCount), running(true),
-               startSumWeight(0), endSumWeight(0)
+               startSumWeight(0), endSumWeight(0), sumForAvoidingCompilerOptimization(0)
                {
 
 }
