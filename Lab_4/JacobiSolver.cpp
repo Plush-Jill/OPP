@@ -210,7 +210,13 @@ void JacobiSolver::sendReceiveBorders() {
     if (this->processRank != this->processCount - 1) {
         double* previousDownBorder = this->previousFunctionValue.data() + (this->layerHeights[processRank] - 1) * this->Ny * this->Nz;
         MPI_Isend(previousDownBorder, this->Ny * this->Nz, MPI_DOUBLE, this->processRank + 1, this->processRank, MPI_COMM_WORLD, &this->sendDownRequest);
-        MPI_Irecv(this->downBorderLayer.data(), this->Ny * this->Nz, MPI_DOUBLE, this->processRank + 1, this->processRank + 1, MPI_COMM_WORLD, &this->receiveDownRequest);
+        MPI_Irecv(this->downBorderLayer.data(),
+                  this->Ny * this->Nz,
+                  MPI_DOUBLE,
+                  this->processRank + 1,
+                  this->processRank + 1,
+                  MPI_COMM_WORLD,
+                  &this->receiveDownRequest);
     }
 }
 

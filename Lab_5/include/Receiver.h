@@ -6,6 +6,7 @@
 #include "Worker.h"
 #include "Sender.h"
 #include <condition_variable>
+#include <set>
 
 class Receiver {
 private:
@@ -25,6 +26,8 @@ private:
     static const int taskReplyMPITag = 0xb;
     static const int endingSignal = 404;
 
+    std::set<int> otherProcessesWithTasks;
+
     [[nodiscard]] bool isRunning() const;
     void stop();
 public:
@@ -38,6 +41,7 @@ public:
              std::shared_ptr<Sender> sender
     );
     void start();
+    [[nodiscard]] std::string to_string() const;
 };
 
 

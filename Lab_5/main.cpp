@@ -16,8 +16,8 @@ int main(int argc, char** argv) {
     int processCount;
     double beginningTime;
     double endingTime;
-    int tasksCount = 2000;
-    int sumWeight = 80000;
+    int tasksCount = 200;
+    int sumWeight = 800000;
 
 
     int required = MPI_THREAD_MULTIPLE;

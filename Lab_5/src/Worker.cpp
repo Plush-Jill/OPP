@@ -2,6 +2,7 @@
 #include <utility>
 #include <complex>
 #include <thread>
+#include <iostream>
 
 void Worker::start() {
     this->initTasks();
@@ -37,15 +38,20 @@ void Worker::executeCurrentTask() {
             break;
         }
         task = this->taskQueue->pop();
+        if (this->taskQueue->getSize() < 20) {
+            this->receiverCondition->notify_one();
+            std::cout << this->to_string() + " notified his receiver" << std::endl;
+        }
         this->mutex->unlock();
 
-        //std::this_thread::sleep_for(std::chrono::nanoseconds(task.getWeight() * 10000));
         double tmp {};
         for (int i {}; i < task.getWeight(); ++i) {
             for (int j {}; j < 2500; ++j) {
                 tmp += sqrt(sqrt(sqrt(sqrt(sqrt(i)))));
             }
         }
+        std::cout << this->to_string() + " finished " + task.to_string() + ", "
+                  << this->taskQueue->getSize() << " tasks remains." << std::endl;
         tmp = 1 + 1/tmp;
         this->sumForAvoidingCompilerOptimization += tmp;
 
@@ -105,4 +111,10 @@ int Worker::getProcessID() const {
 }
 int Worker::getProcessCount() const {
     return this->processCount;
+}
+
+std::string Worker::to_string() const {
+    std::string string {};
+    string += "[Worker " + std::to_string(this->getProcessID()) + "]";
+    return string;
 }

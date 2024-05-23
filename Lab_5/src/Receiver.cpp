@@ -11,14 +11,16 @@ void Receiver::start() {
 
         {
             std::unique_lock<std::mutex> lock (*(this->mutex));
-            while (!this->taskQueue->isEmpty()) {
-                this->receiverCondition->wait(lock);
-            }
+            //while (!this->taskQueue->isEmpty()) {
+            std::cout << this->to_string() + " waiting for notify" << std::endl;
+            this->receiverCondition->wait(lock);
+            std::cout << this->to_string() + " was notified" << std::endl;
+            //}
         }
         //this->mutex->unlock();
 
         for (int i {this->processCount - 1}; i >= 0; --i) {
-            if (i == this->processID) {
+            if (!this->otherProcessesWithTasks.contains(i)) {
                 continue;
             }
 
@@ -42,6 +44,9 @@ void Receiver::start() {
                 this->mutex->unlock();
 
                 ++receivedTasksCount;
+            } else {
+                this->otherProcessesWithTasks.erase(i);
+                std::cout << this->worker->to_string() + " has no"
             }
         }
 
@@ -90,5 +95,15 @@ Receiver::Receiver(int processID,
                    worker(std::move(worker)), sender(std::move(sender)),
                    running(true)
                    {
+    for (int i {}; i < processCount; ++i) {
+        this->otherProcessesWithTasks.insert(i);
+    }
+    this->otherProcessesWithTasks.erase(this->processID);
 
+}
+
+std::string Receiver::to_string() const {
+    std::string string {};
+    string += "[Receiver " + std::to_string(this->processID) + "]";
+    return string;
 }

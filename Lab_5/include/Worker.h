@@ -44,6 +44,7 @@ public:
     [[nodiscard]] int getEndSumWeight() const;
     [[nodiscard]] int getProcessID() const;
     [[nodiscard]] int getProcessCount() const;
+    [[nodiscard]] std::string to_string() const;
 };
 
 

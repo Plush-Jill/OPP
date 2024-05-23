@@ -56,3 +56,9 @@ void Sender::stop() {
     this->running = false;
 }
 
+std::string Sender::to_string() const {
+    std::string string {};
+    string += "[Sender " + std::to_string(this->processID) + "]";
+    return string;
+}
+

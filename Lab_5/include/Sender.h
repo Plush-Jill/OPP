@@ -30,6 +30,7 @@ public:
     );
     void start();
     void stop();
+    [[nodiscard]] std::string to_string() const;
 };
 
 
