@@ -66,6 +66,7 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     beginningTime = MPI_Wtime();
     std::thread workerThread (&Worker::start, worker);
+    std::this_thread::sleep_for(std::chrono::nanoseconds(500));
     std::thread receiverThread (&Receiver::start, receiver);
     std::thread senderThread (&Sender::start, sender);
 

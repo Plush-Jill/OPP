@@ -18,7 +18,7 @@ public:
     void push(Task task);
     Task pop();
 
-    [[nodiscard]] int getSize() const;
+    [[nodiscard]] int getRemainsTasksCount() const;
 };
 
 #endif //LAB_5_TASKQUEUE_H

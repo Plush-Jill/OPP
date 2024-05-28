@@ -1,5 +1,5 @@
 #include "../include/Receiver.h"
-#include <mpi.h>
+#include <mpi/mpi.h>
 #include <thread>
 
 #include <utility>
@@ -7,49 +7,74 @@
 void Receiver::start() {
     while (this->isRunning()) {
         int receivedTasksCount = 0;
-        Task task{};
+        std::vector<Task> tasks{};
+        tasks.reserve(Receiver::maxReceivingTasksCount);
 
         {
-            std::unique_lock<std::mutex> lock (*(this->mutex));
-            //while (!this->taskQueue->isEmpty()) {
-            std::cout << this->to_string() + " waiting for notify" << std::endl;
-            this->receiverCondition->wait(lock);
-            std::cout << this->to_string() + " was notified" << std::endl;
-            //}
+            std::unique_lock<std::mutex> lock(*(this->mutex));
+            while (!this->taskQueue->isEmpty()) {
+                std::cout << this->to_string() + " waiting for notify" << std::endl;
+                this->receiverCondition->wait(lock);
+                std::cout << this->to_string() + " was notified" << std::endl;
+            }
         }
-        //this->mutex->unlock();
 
+        this->mutex->unlock();
+        std::cout << this->to_string() + " starting requesting other processes" << std::endl;
         for (int i {this->processCount - 1}; i >= 0; --i) {
             if (!this->otherProcessesWithTasks.contains(i)) {
+                std::cout << this->to_string() + " skipped [Sender " << i << "]"
+                << " because he can't send task anymore." << std::endl;
                 continue;
             }
+            int taskCountForReceiving {};
 
+            ///sending request for tasks count which current process can get from process i
             MPI_Send(&this->processID,
                      1,
                      MPI_INT,
                      i,
-                     Receiver::taskRequestMPITag,
+                     Receiver::taskCountRequestMPITag,
                      MPI_COMM_WORLD);
-            MPI_Recv(&task,
-                     sizeof(task),
+            MPI_Recv(&taskCountForReceiving,
+                     1,
+                     MPI_INT,
+                     i,
+                     Receiver::taskCountReplyMPITag,
+                     MPI_COMM_WORLD,
+                     MPI_STATUS_IGNORE);
+            std::cout << this->to_string() + " can get " << taskCountForReceiving
+            << " tasks from [Sender " << i << "]." << std::endl;
+            if (taskCountForReceiving == 0) {
+                this->otherProcessesWithTasks.erase(i);
+                continue;
+            }
+            ///receiving taskCountForReceiving tasks from process i
+            MPI_Recv(tasks.data(),
+                     static_cast<int>(sizeof(Task)) * taskCountForReceiving,
                      MPI_BYTE,
                      i,
                      Receiver::taskReplyMPITag,
                      MPI_COMM_WORLD,
                      MPI_STATUS_IGNORE);
-
-            if (!task.isEmpty()) {
-                this->mutex->lock();
-                this->taskQueue->push(task);
-                this->mutex->unlock();
-
-                ++receivedTasksCount;
-            } else {
-                this->otherProcessesWithTasks.erase(i);
-                std::cout << this->worker->to_string() + " has no"
+            std::cout << this->to_string() + " got " << taskCountForReceiving
+                      << " tasks from [Sender " << i << "]." << std::endl;
+            for (int j {}; j < taskCountForReceiving; ++j) {
+                //if (!task.isEmpty()) {
+                    this->mutex->lock();
+                    this->taskQueue->push(tasks[j]);
+                    this->mutex->unlock();
+                    ++receivedTasksCount;
+                    std::cout << this->to_string() + " added tasks from [Sender " << i << "]." << std::endl;
+                //} else {
+//                    this->otherProcessesWithTasks.erase(i);
+//                    std::cout << this->worker->to_string() + " has no more tasks." << std::endl;
+//                }
             }
+            std::cout << this->to_string() + " added to queue all " << taskCountForReceiving
+                      << " tasks from [Sender " << i << "]." << std::endl;
         }
-
+        std::cout << this->to_string() + "'s total received tasks count = " << receivedTasksCount << std::endl;
         if (receivedTasksCount == 0) {
 
             this->mutex->lock();
@@ -61,12 +86,12 @@ void Receiver::start() {
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    int buf = Receiver::endingSignal;
-    MPI_Send(&buf,
+    int endSignal = Receiver::endingSignal;
+    MPI_Send(&endSignal,
              1,
              MPI_INT,
              processID,
-             Receiver::taskRequestMPITag,
+             Receiver::taskCountRequestMPITag,
              MPI_COMM_WORLD);
 
     std::this_thread::yield();

@@ -22,10 +22,14 @@ private:
     std::shared_ptr<Worker> const worker;
     std::shared_ptr<Sender> const sender;
 
-    static const int taskRequestMPITag = 0xa;
-    static const int taskReplyMPITag = 0xb;
+    static const int taskRequestMPITag = 0xaa;
+    static const int taskReplyMPITag = 0xab;
+    static const int taskCountRequestMPITag = 0xba;
+    static const int taskCountReplyMPITag = 0xbb;
+    static const int endingRequestMPITag = 0xe;
     static const int endingSignal = 404;
 
+    static const int maxReceivingTasksCount = 5;
     std::set<int> otherProcessesWithTasks;
 
     [[nodiscard]] bool isRunning() const;

@@ -19,10 +19,8 @@ void Worker::start() {
         }
 
         if (!isRunning()) {
-            //this->mutex->unlock();
             break;
         }
-        //this->mutex->unlock();
     }
 
     std::this_thread::yield();
@@ -38,20 +36,16 @@ void Worker::executeCurrentTask() {
             break;
         }
         task = this->taskQueue->pop();
-        if (this->taskQueue->getSize() < 20) {
-            this->receiverCondition->notify_one();
-            std::cout << this->to_string() + " notified his receiver" << std::endl;
-        }
         this->mutex->unlock();
 
         double tmp {};
         for (int i {}; i < task.getWeight(); ++i) {
-            for (int j {}; j < 2500; ++j) {
+            for (int j {}; j < Worker::timeScaleToExecuteEachTask; ++j) {
                 tmp += sqrt(sqrt(sqrt(sqrt(sqrt(i)))));
             }
         }
         std::cout << this->to_string() + " finished " + task.to_string() + ", "
-                  << this->taskQueue->getSize() << " tasks remains." << std::endl;
+                  << this->taskQueue->getRemainsTasksCount() << " tasks remains." << std::endl;
         tmp = 1 + 1/tmp;
         this->sumForAvoidingCompilerOptimization += tmp;
 

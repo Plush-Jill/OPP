@@ -20,7 +20,7 @@ private:
     int startSumWeight;
     int endSumWeight;
     const int totalSumWeight;
-
+    static const int timeScaleToExecuteEachTask = 3000;
     double sumForAvoidingCompilerOptimization;
 
     void initTasks();

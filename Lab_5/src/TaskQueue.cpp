@@ -18,6 +18,7 @@ TaskQueue::TaskQueue(int capacity) :
 queue(std::make_shared<std::queue<Task>>())
 {
 }
-int TaskQueue::getSize() const {
+int TaskQueue::getRemainsTasksCount() const {
     return static_cast<int>(this->queue->size());
 }
+
