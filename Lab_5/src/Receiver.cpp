@@ -60,16 +60,11 @@ void Receiver::start() {
             std::cout << this->to_string() + " got " << taskCountForReceiving
                       << " tasks from [Sender " << i << "]." << std::endl;
             for (int j {}; j < taskCountForReceiving; ++j) {
-                //if (!task.isEmpty()) {
                     this->mutex->lock();
                     this->taskQueue->push(tasks[j]);
                     this->mutex->unlock();
                     ++receivedTasksCount;
                     std::cout << this->to_string() + " added tasks from [Sender " << i << "]." << std::endl;
-                //} else {
-//                    this->otherProcessesWithTasks.erase(i);
-//                    std::cout << this->worker->to_string() + " has no more tasks." << std::endl;
-//                }
             }
             std::cout << this->to_string() + " added to queue all " << taskCountForReceiving
                       << " tasks from [Sender " << i << "]." << std::endl;

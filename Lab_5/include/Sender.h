@@ -16,11 +16,9 @@ private:
     std::shared_ptr<std::condition_variable> const workerCondition;
     std::shared_ptr<std::condition_variable> const receiverCondition;
 
-    static const int taskRequestMPITag = 0xaa;
     static const int taskReplyMPITag = 0xab;
     static const int taskCountRequestMPITag = 0xba;
     static const int taskCountReplyMPITag = 0xbb;
-    static const int endingRequestMPITag = 0xe;
     static const int endingSignal = 404;
 
     static const int maxSendingTasksCount = 3;
