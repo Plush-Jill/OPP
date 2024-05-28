@@ -37,7 +37,6 @@ void Sender::start() {
                 }
             } else {
                 stopSending();
-                std::cout << this->to_string() + " is NO LONGER ABLE TO SEND his tasks." << std::endl;
             }
             this->mutex->unlock();
 

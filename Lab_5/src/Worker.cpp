@@ -44,8 +44,6 @@ void Worker::executeCurrentTask() {
                 tmp += sqrt(sqrt(sqrt(sqrt(sqrt(i)))));
             }
         }
-        std::cout << this->to_string() + " finished " + task.to_string() + ", "
-                  << this->taskQueue->getRemainsTasksCount() << " tasks remains." << std::endl;
         tmp = 1 + 1/tmp;
         this->sumForAvoidingCompilerOptimization += tmp;
 

@@ -13,18 +13,12 @@ void Receiver::start() {
         {
             std::unique_lock<std::mutex> lock(*(this->mutex));
             while (!this->taskQueue->isEmpty()) {
-                std::cout << this->to_string() + " waiting for notify" << std::endl;
                 this->receiverCondition->wait(lock);
-                std::cout << this->to_string() + " was notified" << std::endl;
             }
         }
 
-        this->mutex->unlock();
-        std::cout << this->to_string() + " starting requesting other processes" << std::endl;
         for (int i {this->processCount - 1}; i >= 0; --i) {
             if (!this->otherProcessesWithTasks.contains(i)) {
-                std::cout << this->to_string() + " skipped [Sender " << i << "]"
-                << " because he can't send task anymore." << std::endl;
                 continue;
             }
             int taskCountForReceiving {};
@@ -43,12 +37,11 @@ void Receiver::start() {
                      Receiver::taskCountReplyMPITag,
                      MPI_COMM_WORLD,
                      MPI_STATUS_IGNORE);
-            std::cout << this->to_string() + " can get " << taskCountForReceiving
-            << " tasks from [Sender " << i << "]." << std::endl;
             if (taskCountForReceiving == 0) {
                 this->otherProcessesWithTasks.erase(i);
                 continue;
             }
+
             ///receiving taskCountForReceiving tasks from process i
             MPI_Recv(tasks.data(),
                      static_cast<int>(sizeof(Task)) * taskCountForReceiving,
@@ -57,19 +50,15 @@ void Receiver::start() {
                      Receiver::taskReplyMPITag,
                      MPI_COMM_WORLD,
                      MPI_STATUS_IGNORE);
-            std::cout << this->to_string() + " got " << taskCountForReceiving
-                      << " tasks from [Sender " << i << "]." << std::endl;
+
             for (int j {}; j < taskCountForReceiving; ++j) {
                     this->mutex->lock();
                     this->taskQueue->push(tasks[j]);
                     this->mutex->unlock();
                     ++receivedTasksCount;
-                    std::cout << this->to_string() + " added tasks from [Sender " << i << "]." << std::endl;
             }
-            std::cout << this->to_string() + " added to queue all " << taskCountForReceiving
-                      << " tasks from [Sender " << i << "]." << std::endl;
         }
-        std::cout << this->to_string() + "'s total received tasks count = " << receivedTasksCount << std::endl;
+
         if (receivedTasksCount == 0) {
 
             this->mutex->lock();
