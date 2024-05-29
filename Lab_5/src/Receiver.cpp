@@ -1,10 +1,10 @@
 #include "../include/Receiver.h"
-#include <mpi/mpi.h>
-#include <thread>
-
+#include <mpi.h>
+#include <random>
 #include <utility>
 
 void Receiver::start() {
+
     while (this->isRunning()) {
         int receivedTasksCount = 0;
         std::vector<Task> tasks{};
@@ -16,9 +16,13 @@ void Receiver::start() {
                 this->receiverCondition->wait(lock);
             }
         }
+        for (int i {processCount - 1}; i >= 0; --i) {
+            if (receivedTasksCount > maxReceivingTasksCount) {
+                break;
+            }
+            bool ableToSendMe = isAbleToSendMeTask(i);
 
-        for (int i {this->processCount - 1}; i >= 0; --i) {
-            if (!this->otherProcessesWithTasks.contains(i)) {
+            if (!ableToSendMe) {
                 continue;
             }
             int taskCountForReceiving {};
@@ -78,8 +82,17 @@ void Receiver::start() {
              Receiver::taskCountRequestMPITag,
              MPI_COMM_WORLD);
 
-    std::this_thread::yield();
 }
+
+bool Receiver::isAbleToSendMeTask(int targetProcessID) {
+    for (int x : otherProcessesWithTasks) {
+        if (x == targetProcessID) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Receiver::isRunning() const {
     return this->running;
 }

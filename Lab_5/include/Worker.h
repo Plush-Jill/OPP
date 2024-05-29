@@ -16,17 +16,20 @@ private:
     std::shared_ptr<std::condition_variable> const workerCondition;
     std::shared_ptr<std::condition_variable> const receiverCondition;
 
-    int taskCount;
+    int totalTasksCount;
+    int thisWorkerStartCount;
     int startSumWeight;
     int endSumWeight;
     const int totalSumWeight;
-    static const int timeScaleToExecuteEachTask = 3000;
+    static const int timeScaleToExecuteEachTask = 5'000;
     double sumForAvoidingCompilerOptimization;
+    const int taskCountLimitBeforeNotifyingReceiver = 5;
 
     void initTasks();
     void executeCurrentTask();
 
     [[nodiscard]] bool isRunning() const;
+    [[nodiscard]] bool isManyTasksRemains() const;
 
 public:
     explicit Worker(int processID,
@@ -35,7 +38,7 @@ public:
                     std::shared_ptr<std::mutex> mutex,
                     std::shared_ptr<std::condition_variable> workerCondition,
                     std::shared_ptr<std::condition_variable> receiverCondition,
-                    int taskCount,
+                    int totalTasksCount,
                     int totalSumWeight
     );
     void start();
@@ -45,6 +48,9 @@ public:
     [[nodiscard]] int getProcessID() const;
     [[nodiscard]] int getProcessCount() const;
     [[nodiscard]] std::string to_string() const;
+    [[nodiscard]] double getPartFromTotalSum() const;
+
+    void startWithoutBalancing();
 };
 
 

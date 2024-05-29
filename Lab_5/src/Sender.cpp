@@ -1,9 +1,9 @@
 #include "../include/Sender.h"
-#include <mpi/mpi.h>
-#include <thread>
+#include <mpi.h>
 #include <utility>
 
 void Sender::start() {
+
     while (true) {
         int receiverProcessID;
         std::vector<Task> tasksForSending{};
@@ -59,7 +59,6 @@ void Sender::start() {
                  MPI_COMM_WORLD);
     }
 
-    std::this_thread::yield();
 }
 
 Sender::Sender(int processID,

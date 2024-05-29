@@ -1,10 +1,10 @@
 #include "../include/Worker.h"
 #include <utility>
 #include <complex>
-#include <thread>
 #include <iostream>
 
 void Worker::start() {
+
     this->initTasks();
 
     while (true) {
@@ -22,8 +22,11 @@ void Worker::start() {
             break;
         }
     }
-
-    std::this_thread::yield();
+    executeCurrentTask();
+}
+void Worker::startWithoutBalancing() {
+    this->initTasks();
+    executeCurrentTask();
 }
 
 void Worker::executeCurrentTask() {
@@ -35,7 +38,11 @@ void Worker::executeCurrentTask() {
             this->mutex->unlock();
             break;
         }
+        if (!isManyTasksRemains()) {
+            this->receiverCondition->notify_one();
+        }
         task = this->taskQueue->pop();
+
         this->mutex->unlock();
 
         double tmp {};
@@ -54,20 +61,33 @@ bool Worker::isRunning() const {
     return this->running;
 }
 void Worker::initTasks() {
-    int baseWeight = 2 * this->totalSumWeight / (this->taskCount * (this->processCount + 1));
+    int minWeight = 2 * this->totalSumWeight / (this->totalTasksCount * (this->processCount + 1));
     int nextTaskID = 1;
+    int res = totalSumWeight;
 
-    for (int i {}; i < this->taskCount; ++i){
-
-        if (i % this->processCount == this->processID) {
-            int weight = baseWeight * (i % this->processCount + 1);
-
-            Task task = Task(nextTaskID, this->processID, weight);
+    for (int i {}; i < this->totalTasksCount; ++i){
+        int weight = minWeight * (i % this->processCount + 1);
+        Task task = Task(nextTaskID, this->processID, weight);
+//        if (i % this->processCount == this->processID/*this->processID == this->processCount - 1*/) {
+        if (i % (this->processCount / 5 + 1) == this->processID) {
+            this->mutex->lock();
             this->taskQueue->push(task);
+            this->mutex->unlock();
+
 
             ++nextTaskID;
             this->startSumWeight += weight;
         }
+        res -= weight;
+    }
+    if (processID == processCount - 1) {
+        Task task = Task(nextTaskID, this->processID, res);
+        this->mutex->lock();
+        this->taskQueue->push(task);
+        this->mutex->unlock();
+
+        ++nextTaskID;
+        this->startSumWeight += res;
     }
 }
 
@@ -77,16 +97,17 @@ Worker::Worker(int processID,
                std::shared_ptr<std::mutex> mutex,
                std::shared_ptr<std::condition_variable> workerCondition,
                std::shared_ptr<std::condition_variable> receiverCondition,
-               int taskCount,
+               int totalTasksCount,
                int totalSumWeight
                ) :
-               processID(processID), processCount(processCount),
-               taskQueue(std::move(taskQueue)), mutex(std::move(mutex)),
-               workerCondition(std::move(workerCondition)), receiverCondition(std::move(receiverCondition)),
-               totalSumWeight(totalSumWeight),
-               taskCount(taskCount), running(true),
-               startSumWeight(0), endSumWeight(0), sumForAvoidingCompilerOptimization(0)
-               {
+        processID(processID), processCount(processCount),
+        taskQueue(std::move(taskQueue)), mutex(std::move(mutex)),
+        workerCondition(std::move(workerCondition)), receiverCondition(std::move(receiverCondition)),
+        totalSumWeight(totalSumWeight),
+        totalTasksCount(totalTasksCount), running(true),
+        startSumWeight(0), endSumWeight(0), sumForAvoidingCompilerOptimization(0),
+        thisWorkerStartCount(0)
+        {
 
 }
 void Worker::stop() {
@@ -110,3 +131,8 @@ std::string Worker::to_string() const {
     string += "[Worker " + std::to_string(this->getProcessID()) + "]";
     return string;
 }
+
+bool Worker::isManyTasksRemains() const {
+    return this->taskQueue->getRemainsTasksCount() > Worker::taskCountLimitBeforeNotifyingReceiver;
+}
+

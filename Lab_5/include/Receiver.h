@@ -27,10 +27,11 @@ private:
     static const int taskCountReplyMPITag = 0xbb;
     static const int endingSignal = 404;
 
-    static const int maxReceivingTasksCount = 5;
+    static const int maxReceivingTasksCount = 10;
     std::set<int> otherProcessesWithTasks;
 
     [[nodiscard]] bool isRunning() const;
+    bool isAbleToSendMeTask(int targetProcessID);
     void stop();
 public:
     Receiver(int processID,

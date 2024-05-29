@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.26)
 project(Lab_5)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 17)
 
 add_executable(Lab_5
-        main.cpp
+        src/main.cpp
         src/Task.cpp
         include/Task.h
         src/TaskQueue.cpp

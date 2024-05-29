@@ -21,8 +21,8 @@ private:
     static const int taskCountReplyMPITag = 0xbb;
     static const int endingSignal = 404;
 
-    static const int maxSendingTasksCount = 3;
-    static const int limitForPossibilityOfSending = 5;
+    static const int maxSendingTasksCount = 4;
+    static const int limitForPossibilityOfSending = 6;
     bool ableToSendTasks;
 
 
