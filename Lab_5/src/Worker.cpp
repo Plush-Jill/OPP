@@ -11,6 +11,7 @@ void Worker::start() {
 
         executeCurrentTask();
         {
+
             std::unique_lock<std::mutex> lock (*(this->mutex));
             while (this->taskQueue->isEmpty() && this->isRunning()) {
                 this->receiverCondition->notify_one();
