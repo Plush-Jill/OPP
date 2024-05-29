@@ -67,12 +67,10 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     beginningTime = MPI_Wtime();
     if (balancing) {
-//        std::thread workerThread (&Worker::start, worker);
-        std::this_thread::sleep_for(std::chrono::nanoseconds(400));
         std::thread receiverThread (&Receiver::start, receiver);
         std::thread senderThread (&Sender::start, sender);
+
         worker->start();
-//        workerThread.join();
         receiverThread.join();
         senderThread.join();
     } else {

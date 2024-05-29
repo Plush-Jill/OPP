@@ -38,7 +38,7 @@ void Worker::executeCurrentTask() {
             this->mutex->unlock();
             break;
         }
-        if (!isManyTasksRemains()) {
+        if (!isEnoughTasksRemainsForDoOnlyOwnTasks()) {
             this->receiverCondition->notify_one();
         }
         task = this->taskQueue->pop();
@@ -132,7 +132,7 @@ std::string Worker::to_string() const {
     return string;
 }
 
-bool Worker::isManyTasksRemains() const {
+bool Worker::isEnoughTasksRemainsForDoOnlyOwnTasks() const {
     return this->taskQueue->getRemainsTasksCount() > Worker::taskCountLimitBeforeNotifyingReceiver;
 }
 

@@ -64,10 +64,7 @@ void Receiver::start() {
         }
 
         if (receivedTasksCount == 0) {
-
-            this->mutex->lock();
             this->stop();
-            this->mutex->unlock();
         }
 
         this->workerCondition->notify_one();

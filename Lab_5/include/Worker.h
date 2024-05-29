@@ -29,7 +29,7 @@ private:
     void executeCurrentTask();
 
     [[nodiscard]] bool isRunning() const;
-    [[nodiscard]] bool isManyTasksRemains() const;
+    [[nodiscard]] bool isEnoughTasksRemainsForDoOnlyOwnTasks() const;
 
 public:
     explicit Worker(int processID,

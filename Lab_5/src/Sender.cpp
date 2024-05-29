@@ -39,8 +39,8 @@ void Sender::start() {
                 stopSending();
             }
             this->mutex->unlock();
-
         }
+
         MPI_Send(&taskCountForSending,
                  1,
                  MPI_INT,
